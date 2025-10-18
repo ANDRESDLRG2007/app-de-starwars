@@ -1,7 +1,7 @@
-// Buscador de planetas
+// 🔍 Buscar planetas
 function buscarPlanetas(texto) {
     if (texto.length >= 3) {
-        const filtrados = planetas.filter(p => 
+        const filtrados = planetas.filter(p =>
             p.name.toLowerCase().includes(texto.toLowerCase())
         );
         actualizarListaPlanetas(filtrados);
@@ -10,37 +10,39 @@ function buscarPlanetas(texto) {
     }
 }
 
-// Filtrar planetas por clima
-function filtrarPlanetas(clima) {
-    if (clima === 'todos') {
-        actualizarListaPlanetas(planetas);
+// 🪐 Obtener imagen desde GitHub o placeholder
+function obtenerImagenPlaneta(nombre, id) {
+    if (typeof obtenerImagen === "function") {
+        // Usa la función global definida en conexion.js
+        return obtenerImagen(nombre, 'planets', id);
     } else {
-        actualizarListaPlanetas(planetas);
+        // Fallback, por si el script se carga antes de conexion.js
+        return obtenerImagenPorDefecto('planets', nombre, id);
     }
 }
 
-// Generar HTML de lista de planetas
+// 🧩 Generar HTML de lista de planetas
 function generarListaPlanetas(arrayPlanetas) {
     let listaHTML = "";
-    
+
     for (let i = 0; i < arrayPlanetas.length; i++) {
         const id = arrayPlanetas[i].uid;
         const nombre = arrayPlanetas[i].name;
-        const imgUrl = `${IMG_BASE}/planets/${id}.jpg`;
-        
+        const imgUrl = obtenerImagenPlaneta(nombre, id);
+        const placeholder = obtenerImagenPorDefecto('planets', nombre, id);
+
         listaHTML += `
         <div class="card-planeta" onclick="DetallePlaneta('${id}')">
-            <img src="${imgUrl}" alt="${nombre}" 
-                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%231a1a1a%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23FFE81F%22 font-size=%2214%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E%F0%9F%8C%8D%20${nombre}%3C/text%3E%3C/svg%3E'">
+            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
             <h3>${nombre}</h3>
             <p>ID: ${id}</p>
         </div>`;
     }
-    
+
     return listaHTML;
 }
 
-// Actualizar lista de planetas
+// 🔁 Actualizar lista
 function actualizarListaPlanetas(arrayPlanetas) {
     const contenedor = document.getElementById("lista-elementos");
     if (contenedor) {
@@ -48,15 +50,15 @@ function actualizarListaPlanetas(arrayPlanetas) {
     }
 }
 
-// Página principal de Planetas
+// 🌍 Página principal de Planetas
 async function Planetas() {
     const root = document.getElementById("root");
     root.innerHTML = "";
-    
+
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
     titulo.textContent = "🌍 Planetas";
-    
+
     const buscador = document.createElement("input");
     buscador.className = "buscador";
     buscador.type = "text";
@@ -64,88 +66,54 @@ async function Planetas() {
     buscador.addEventListener("input", () => {
         buscarPlanetas(buscador.value);
     });
-    
-    const contenedorFiltros = document.createElement("div");
-    contenedorFiltros.className = "filtros-container";
-    
-    const filtros = [
-        { texto: "Todos", valor: "todos" },
-        { texto: "Árido", valor: "arid" },
-        { texto: "Templado", valor: "temperate" },
-        { texto: "Tropical", valor: "tropical" },
-        { texto: "Congelado", valor: "frozen" }
-    ];
-    
-    for (let i = 0; i < filtros.length; i++) {
-        const btn = document.createElement("button");
-        btn.className = "btn-filtro";
-        btn.textContent = filtros[i].texto;
-        btn.addEventListener("click", () => {
-            filtrarPlanetas(filtros[i].valor);
-        });
-        contenedorFiltros.appendChild(btn);
-    }
-    
+
     const contenedorLista = document.createElement("div");
     contenedorLista.className = "grid-container";
     contenedorLista.id = "lista-elementos";
-    
+
     if (planetas.length === 0) {
         contenedorLista.innerHTML = "<div class='loading'>Cargando planetas...</div>";
         await obtenerPlanetas();
     }
-    
+
     contenedorLista.innerHTML = generarListaPlanetas(planetas);
-    
+
     root.appendChild(titulo);
     root.appendChild(buscador);
-    root.appendChild(contenedorFiltros);
     root.appendChild(contenedorLista);
 }
 
-// Detalle de planeta
+// 🧭 Detalle de planeta
 async function DetallePlaneta(id) {
     const root = document.getElementById("root");
     root.innerHTML = "<div class='loading'>Cargando planeta...</div>";
-    
+
     const data = await obtenerDetallePlaneta(id);
-    
+
     if (!data) {
         root.innerHTML = "<p>Error al cargar el planeta</p>";
         return;
     }
-    
-    const imgUrl = `${IMG_BASE}/planets/${id}.jpg`;
+
+    const nombre = data.name;
+    const imgUrl = obtenerImagenPlaneta(nombre, id);
+    const placeholder = obtenerImagenPorDefecto('planets', nombre, id);
     const isFav = esFavorito(id, 'planeta');
-    
-    const fondos = {
-        'arid': 'linear-gradient(135deg, #d4a574, #8b6f47)',
-        'temperate': 'linear-gradient(135deg, #4a90e2, #50c878)',
-        'frozen': 'linear-gradient(135deg, #a8d8ea, #e3f2fd)',
-        'tropical': 'linear-gradient(135deg, #2ecc71, #27ae60)',
-    };
-    
+
     const detalle = document.createElement("div");
     detalle.className = "detalle-container";
-    
-    const clima = data.climate ? data.climate.split(',')[0].trim() : '';
-    if (fondos[clima]) {
-        detalle.style.background = fondos[clima];
-    }
-    
     detalle.innerHTML = `
         <button class="btn-volver" onclick="Planetas()">← Volver</button>
-        
+
         <div class="detalle-header">
-            <img src="${imgUrl}" alt="${data.name}" 
-                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%231a1a1a%22 width=%22300%22 height=%22300%22/%3E%3Ctext fill=%22%23FFE81F%22 font-size=%2218%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E%F0%9F%8C%8D%20${data.name}%3C/text%3E%3C/svg%3E'">
+            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
             <div class="detalle-info">
-                <h1>${data.name}</h1>
+                <h1>${nombre}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}" 
-                        onclick="toggleFavorito('${id}', 'planeta', '${data.name}')">
+                        onclick="toggleFavorito('${id}', 'planeta', '${nombre}')">
                     ${isFav ? '⭐ Favorito' : '☆ Añadir a Favoritos'}
                 </button>
-                
+
                 <div class="stats">
                     <div class="stat-item">
                         <span class="stat-label">Clima:</span>
@@ -183,7 +151,7 @@ async function DetallePlaneta(id) {
             </div>
         </div>
     `;
-    
+
     root.innerHTML = "";
     root.appendChild(detalle);
 }
