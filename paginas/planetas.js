@@ -26,11 +26,11 @@ function generarListaPlanetas(arrayPlanetas) {
         const imgJPG = arrayPlanetas[i].imageJPG;
         const imgGitHub = arrayPlanetas[i].imageGitHub;
         const imgFallback = arrayPlanetas[i].imageFallback;
-        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
+       // const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-planeta" onclick="DetallePlaneta('${id}')">
-            <img src="${imgWebP}" alt="${nombre}" ${attrOnerror}>
+            <img src="${imgWebP}" alt="${nombre}" onerror="this.src='img/fallback.webp'">
             <h3>${nombre}</h3>
             <p>ID: ${id}</p>
         </div>`;

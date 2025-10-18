@@ -29,11 +29,11 @@ function generarListaPersonajes(arrayPersonajes) {
         const imgFallback = arrayPersonajes[i].imageFallback;
         
         // Construir atributo onerror con cascada completa
-        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
+       // const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-personaje" onclick="DetallePersonaje('${id}')">
-            <img src="${imgWebP}" alt="${nombre}" ${attrOnerror}>
+            <img src="${imgWebP}" alt="${nombre}" onerror="this.src='img/fallback.webp'">
             <h3>${nombre}</h3>
             <p>#${id}</p>
         </div>`;

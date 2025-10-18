@@ -26,11 +26,11 @@ function generarListaNaves(arrayNaves) {
         const imgJPG = arrayNaves[i].imageJPG;
         const imgGitHub = arrayNaves[i].imageGitHub;
         const imgFallback = arrayNaves[i].imageFallback;
-        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
+        //const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-nave" onclick="DetalleNave('${id}')">
-            <img src="${imgWebP}" alt="${nombre}" ${attrOnerror}>
+            <img src="${imgWebP}" alt="${nombre}" onerror="this.src='img/fallback.webp'">
             <h3>${nombre}</h3>
             <p>ID: ${id}</p>
         </div>`;
