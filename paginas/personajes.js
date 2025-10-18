@@ -107,7 +107,7 @@ async function DetallePersonaje(id) {
         <button class="btn-volver" onclick="Personajes()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgWebP}" alt="${nombre}" onerror="this.src='img/fallback.webp'">
+             <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
             <div class="detalle-info">
                 <h1>${data.name}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}"

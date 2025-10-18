@@ -75,7 +75,7 @@ async function DetallePelicula(id) {
     const imgLocal = data.image;
     const imgGitHub = data.imageGitHub;
     const imgFallback = data.imageFallback;
-    //const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
+    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
 
     const detalle = document.createElement("div");
     detalle.className = "detalle-container pelicula-detalle";
@@ -83,7 +83,7 @@ async function DetallePelicula(id) {
         <button class="btn-volver" onclick="Peliculas()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgWebP}" alt="${nombre}" onerror="this.src='img/fallback.webp'">
+             <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
             <div class="detalle-info">
                 <h1>Episodio ${data.episode_id}</h1>
                 <h2 style="color: #fff; margin-bottom: 1rem;">${data.title}</h2>
