@@ -1,11 +1,13 @@
 // ================================================================
-// 🌌 Star Wars Encyclopedia - conexion.js (corregido)
+// 🌌 Star Wars Encyclopedia - conexion.js (con Especies y Vehículos)
 // ================================================================
 
 let personajes = [];
 let planetas = [];
 let naves = [];
 let peliculas = [];
+let especies = [];
+let vehiculos = [];
 let favoritos = [];
 let imagenesStarWars = [];
 
@@ -37,7 +39,6 @@ function generarAtributoOnerror(rutaJPG, imgGitHub, fallback) {
     }
 }
 
-
 // =======================
 // 🧩 Utilidades
 // =======================
@@ -54,7 +55,6 @@ function normalizarNombreArchivo(nombre) {
         .replace(/[^a-z0-9_-]/g, '');
 }
 
-// ✅ Verificar imagen sin CORS usando objeto Image
 // ✅ Verifica si una imagen existe (usa GET si el HEAD falla)
 async function verificarImagen(url) {
     try {
@@ -74,7 +74,6 @@ async function verificarImagen(url) {
     }
 }
 
-
 // =======================
 // 🖼️ Flujo GitHub → Local → Fallback (solo para personajes)
 // =======================
@@ -88,19 +87,18 @@ async function obtenerImagen(nombre, categoria = "personajes") {
     );
 
     // 1️⃣ Intentar con la URL de Akabab si existe
-   if (personajeAkabab && personajeAkabab.image) {
-    const url = personajeAkabab.image;
+    if (personajeAkabab && personajeAkabab.image) {
+        const url = personajeAkabab.image;
 
-    const cargaValida = await verificarImagen(url);
+        const cargaValida = await verificarImagen(url);
 
-    if (cargaValida) {
-        console.log(`🟢 Imagen GitHub usada: ${nombre}`);
-        return url;
-    } else {
-        console.warn(`⚠️ Imagen GitHub rota o bloqueada: ${nombre}`);
+        if (cargaValida) {
+            console.log(`🟢 Imagen GitHub usada: ${nombre}`);
+            return url;
+        } else {
+            console.warn(`⚠️ Imagen GitHub rota o bloqueada: ${nombre}`);
+        }
     }
-}
-
 
     // 2️⃣ Intentar versión local
     const rutaLocal = `img/${categoria}/${nombreNormalizado}.webp`;
@@ -152,7 +150,7 @@ async function obtenerPlanetas() {
         const data = await res.json();
 
         planetas = data.results
-            .filter(p => p.name.toLowerCase() !== "unknown") // 👈 ESTE FILTRO
+            .filter(p => p.name.toLowerCase() !== "unknown")
             .map((p) => ({
                 ...p,
                 image: `img/planeta/${normalizarNombreArchivo(p.name)}.webp`
@@ -164,7 +162,6 @@ async function obtenerPlanetas() {
         return [];
     }
 }
-
 
 // =======================
 // 🚀 NAVES
@@ -188,7 +185,6 @@ async function obtenerNaves() {
     }
 }
 
-
 // =======================
 // 🎬 PELÍCULAS
 // =======================
@@ -205,6 +201,46 @@ async function obtenerPeliculas() {
         return peliculas;
     } catch (error) {
         console.error('Error al obtener películas:', error);
+        return [];
+    }
+}
+
+// =======================
+// 👽 ESPECIES
+// =======================
+async function obtenerEspecies() {
+    try {
+        const res = await fetch(`${BASE_URL}/species?page=1&limit=100`);
+        const data = await res.json();
+
+        especies = data.results.map((e) => ({
+            ...e,
+            image: `img/especies/${normalizarNombreArchivo(e.name)}.webp`
+        }));
+
+        return especies;
+    } catch (error) {
+        console.error('Error al obtener especies:', error);
+        return [];
+    }
+}
+
+// =======================
+// 🚗 VEHÍCULOS
+// =======================
+async function obtenerVehiculos() {
+    try {
+        const res = await fetch(`${BASE_URL}/vehicles?page=1&limit=100`);
+        const data = await res.json();
+
+        vehiculos = data.results.map((v) => ({
+            ...v,
+            image: `img/vehiculos/${normalizarNombreArchivo(v.name)}.webp`
+        }));
+
+        return vehiculos;
+    } catch (error) {
+        console.error('Error al obtener vehículos:', error);
         return [];
     }
 }
@@ -285,6 +321,46 @@ async function obtenerDetallePelicula(id) {
         return pelicula;
     } catch (error) {
         console.error(`❌ Error al obtener detalle de la película ${id}:`, error);
+        return null;
+    }
+}
+
+// =======================
+// 👽 Obtener detalle de ESPECIE
+// =======================
+async function obtenerDetalleEspecie(id) {
+    try {
+        const res = await fetch(`${BASE_URL}/species/${id}`);
+        const data = await res.json();
+        const especie = data.result.properties;
+
+        especie.uid = id;
+        especie.name = especie.name || 'Desconocido';
+        especie.image = `img/especies/${normalizarNombreArchivo(especie.name)}.webp`;
+
+        return especie;
+    } catch (error) {
+        console.error(`❌ Error al obtener detalle de la especie ${id}:`, error);
+        return null;
+    }
+}
+
+// =======================
+// 🚗 Obtener detalle de VEHÍCULO
+// =======================
+async function obtenerDetalleVehiculo(id) {
+    try {
+        const res = await fetch(`${BASE_URL}/vehicles/${id}`);
+        const data = await res.json();
+        const vehiculo = data.result.properties;
+
+        vehiculo.uid = id;
+        vehiculo.name = vehiculo.name || 'Desconocido';
+        vehiculo.image = `img/vehiculos/${normalizarNombreArchivo(vehiculo.name)}.webp`;
+
+        return vehiculo;
+    } catch (error) {
+        console.error(`❌ Error al obtener detalle del vehículo ${id}:`, error);
         return null;
     }
 }

@@ -1,12 +1,14 @@
 // ============================================================================
 // 🪐 RENOMBRAR IMÁGENES Star Wars (personajes, planeta, naves, films)
 // Detecta variantes, normaliza nombres y evita colisiones
+// code node renombrar_imagenes.js
+
 // ============================================================================
 const fs = require('fs');
 const path = require('path');
 
 const carpetas = [
-  'img/naves'
+  'img/vehiculos','img/especies'
 ];
 
 // 🔡 Igual que tu normalizador en conexión.js
