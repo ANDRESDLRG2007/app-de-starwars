@@ -65,6 +65,25 @@
             border-radius: 10px;
             border-left: 4px solid #FFE81F;
         }
+        .diagnostico {
+            text-align: left;
+            background: #111;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #FFE81F;
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+        details {
+            margin-top: 1rem;
+        }
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        summary:hover {
+            color: #fff27a;
+        }
     </style>
 </head>
 <body>
@@ -73,9 +92,13 @@
 
     <button onclick="testAPI()">🚀 Testear Conexión</button>
     <button onclick="randomTest()">🔀 Test Aleatorio</button>
+    <button onclick="verificarRecursos()">📊 Diagnóstico Completo</button>
 
     <div id="resultado"></div>
     <div class="log" id="log"></div>
+
+    <!-- 🧩 Sección de diagnóstico extendido -->
+    <div id="diagnostico"></div>
 
     <script>
         const BASE_URL = 'https://www.swapi.tech/api';
@@ -90,18 +113,14 @@
 
             const inicio = performance.now();
             try {
-                // Verificar SWAPI
                 const swapiRes = await fetch(`${BASE_URL}/people/1`);
                 const swapiData = await swapiRes.json();
                 const personaje = swapiData.result.properties;
 
-                // Verificar API de GitHub (Akabab)
                 const gitRes = await fetch(IMG_BASE);
                 githubData = await gitRes.json();
 
                 const tiempo = (performance.now() - inicio).toFixed(2);
-
-                // Buscar imagen por nombre
                 const match = githubData.find(p => p.name === personaje.name);
                 const imgUrl = match ? match.image : '';
 
@@ -154,6 +173,96 @@
                 🌐 Imagen cargada desde: ${randomItem.image}<br>
                 ⏰ Hora: ${tiempo}
             `;
+        }
+
+        // 🧠 === Diagnóstico extendido ===
+        async function verificarRecursos() {
+            const diag = document.getElementById("diagnostico");
+            diag.innerHTML = "<p>⏳ Analizando recursos...</p>";
+
+            const resultados = {
+                personajes: { total: 0, conImagen: 0, sinImagen: [] },
+                naves: { total: 0, conImagen: 0, sinImagen: [] },
+                peliculas: { total: 0, conImagen: 0, sinImagen: [] }
+            };
+
+            try {
+                // 1️⃣ PERSONAJES
+                const resPers = await fetch("https://akabab.github.io/starwars-api/api/all.json");
+                const personajes = await resPers.json();
+                resultados.personajes.total = personajes.length;
+
+                for (const p of personajes) {
+                    const ok = await verificarImagen(p.image);
+                    if (ok) resultados.personajes.conImagen++;
+                    else resultados.personajes.sinImagen.push({ nombre: p.name, url: p.image });
+                }
+
+                // 2️⃣ NAVES
+                const resNaves = await fetch("https://swapi.tech/api/starships");
+                const navesData = await resNaves.json();
+                resultados.naves.total = navesData.results.length;
+
+                for (const n of navesData.results) {
+                    const id = n.uid;
+                    const imgUrl = `https://starwars-visualguide.com/assets/img/starships/${id}.jpg`;
+                    const ok = await verificarImagen(imgUrl);
+                    if (ok) resultados.naves.conImagen++;
+                    else resultados.naves.sinImagen.push({ nombre: n.name, url: imgUrl });
+                }
+
+                // 3️⃣ PELÍCULAS
+                const resFilms = await fetch("https://swapi.tech/api/films");
+                const filmsData = await resFilms.json();
+                resultados.peliculas.total = filmsData.result.length;
+
+                for (const f of filmsData.result) {
+                    const id = f.uid;
+                    const imgUrl = `https://starwars-visualguide.com/assets/img/films/${id}.jpg`;
+                    const ok = await verificarImagen(imgUrl);
+                    if (ok) resultados.peliculas.conImagen++;
+                    else resultados.peliculas.sinImagen.push({ nombre: f.properties.title, url: imgUrl });
+                }
+
+                diag.innerHTML = `
+                    <div class="diagnostico">
+                        <h3>📈 Resumen General</h3>
+                        <ul>
+                            <li>👤 Personajes: ${resultados.personajes.conImagen}/${resultados.personajes.total}</li>
+                            <li>🚀 Naves: ${resultados.naves.conImagen}/${resultados.naves.total}</li>
+                            <li>🎬 Películas: ${resultados.peliculas.conImagen}/${resultados.peliculas.total}</li>
+                        </ul>
+
+                        <h3 style="color:#FF5050;">⚠️ Imágenes Faltantes</h3>
+
+                        <details>
+                            <summary>👤 Personajes (${resultados.personajes.sinImagen.length})</summary>
+                            <ul>${resultados.personajes.sinImagen.map(p => `<li>${p.nombre} → <a href="${p.url}" target="_blank">${p.url}</a></li>`).join('')}</ul>
+                        </details>
+
+                        <details>
+                            <summary>🚀 Naves (${resultados.naves.sinImagen.length})</summary>
+                            <ul>${resultados.naves.sinImagen.map(n => `<li>${n.nombre} → <a href="${n.url}" target="_blank">${n.url}</a></li>`).join('')}</ul>
+                        </details>
+
+                        <details>
+                            <summary>🎬 Películas (${resultados.peliculas.sinImagen.length})</summary>
+                            <ul>${resultados.peliculas.sinImagen.map(f => `<li>${f.nombre} → <a href="${f.url}" target="_blank">${f.url}</a></li>`).join('')}</ul>
+                        </details>
+                    </div>
+                `;
+            } catch (err) {
+                diag.innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`;
+            }
+        }
+
+        async function verificarImagen(url) {
+            try {
+                const res = await fetch(url, { method: "HEAD" });
+                return res.ok;
+            } catch {
+                return false;
+            }
         }
     </script>
 </body>
