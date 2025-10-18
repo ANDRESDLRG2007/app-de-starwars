@@ -1,8 +1,8 @@
 // =============================================================================
-// ⭐ FAVORITOS - Sistema con cascada de imágenes
+// ⭐ FAVORITOS - Sistema corregido
 // =============================================================================
 
-// Generar HTML de favoritos con cascada de imágenes
+// Generar HTML de favoritos
 function generarListaFavoritos() {
     if (favoritos.length === 0) {
         return `
@@ -24,15 +24,9 @@ function generarListaFavoritos() {
         const fav = favoritos[i];
         let clickFunction = "";
         let icono = "";
-        let tipo = "";
         
-        // Construir rutas de imagen con cascada
-        const tipoImagen = getTipoParaImagen(fav.tipo);
-        const imgWebP = construirRutaLocal(fav.nombre, tipoImagen, 'webp');
-        const imgJPG = construirRutaLocal(fav.nombre, tipoImagen, 'jpg');
-        const imgGitHub = obtenerImagenGitHub(fav.nombre);
-        const imgFallback = obtenerImagenPorDefecto(tipoImagen, fav.nombre, fav.uid);
-        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
+        // Obtener imagen según el tipo
+        const imgWebP = obtenerImagenFavorito(fav);
         
         if (fav.tipo === 'personaje') {
             clickFunction = `DetallePersonaje('${fav.uid}')`;
@@ -43,6 +37,12 @@ function generarListaFavoritos() {
         } else if (fav.tipo === 'nave') {
             clickFunction = `DetalleNave('${fav.uid}')`;
             icono = "🚀";
+        } else if (fav.tipo === 'especie') {
+            clickFunction = `DetalleEspecie('${fav.uid}')`;
+            icono = "👽";
+        } else if (fav.tipo === 'vehiculo') {
+            clickFunction = `DetalleVehiculo('${fav.uid}')`;
+            icono = "🚗";
         }
         
         listaHTML += `
@@ -51,7 +51,7 @@ function generarListaFavoritos() {
                 ✕
             </button>
             <div onclick="${clickFunction}" style="cursor: pointer;">
-                <img src="${imgWebP}" alt="${fav.nombre}" ${attrOnerror}>
+                <img src="${imgWebP}" alt="${fav.nombre}" onerror="this.src='img/fallback.webp'">
                 <h3>${icono} ${fav.nombre}</h3>
                 <p style="background: rgba(255, 232, 31, 0.2); padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; color: var(--color-primary); display: inline-block; margin-top: 0.5rem;">${fav.tipo}</p>
             </div>
@@ -61,14 +61,27 @@ function generarListaFavoritos() {
     return listaHTML;
 }
 
-// Helper: convertir tipo de favorito a tipo de imagen
-function getTipoParaImagen(tipoFavorito) {
-    const mapping = {
-        'personaje': 'characters',
-        'planeta': 'planets',
-        'nave': 'starships'
-    };
-    return mapping[tipoFavorito] || 'characters';
+// Helper: Obtener imagen del favorito
+function obtenerImagenFavorito(fav) {
+    const nombreNormalizado = normalizarNombreArchivo(fav.nombre);
+    
+    if (fav.tipo === 'personaje') {
+        // Buscar en personajes cargados
+        const personaje = personajes.find(p => p.uid === fav.uid);
+        return personaje ? personaje.image : 'img/fallback.webp';
+    } else if (fav.tipo === 'planeta') {
+        return `img/planeta/${nombreNormalizado}.webp`;
+    } else if (fav.tipo === 'nave') {
+        // Buscar en naves cargadas
+        const nave = naves.find(n => n.uid === fav.uid);
+        return nave ? nave.image : 'img/fallback.webp';
+    } else if (fav.tipo === 'especie') {
+        return `img/especies/${nombreNormalizado}.webp`;
+    } else if (fav.tipo === 'vehiculo') {
+        return `img/vehiculos/${nombreNormalizado}.webp`;
+    }
+    
+    return 'img/fallback.webp';
 }
 
 // Eliminar favorito y actualizar vista

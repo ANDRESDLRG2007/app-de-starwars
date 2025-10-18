@@ -391,11 +391,46 @@ function esFavorito(uid, tipo) {
 // 🚀 Inicialización
 // =======================
 async function inicializarApp() {
+    const root = document.getElementById("root");
+    
+    // Mostrar pantalla de carga
+    root.innerHTML = `
+        <div class="loading-screen">
+            <div class="loading-spinner"></div>
+            <h2 style="color: var(--color-primary); margin-top: 2rem;">Cargando Star Wars Encyclopedia...</h2>
+            <p style="color: #aaa; margin-top: 1rem;">Conectando con la galaxia...</p>
+        </div>
+    `;
+    
     console.log("🚀 Iniciando Star Wars Encyclopedia...");
-    await cargarImagenesStarWars();
-    await obtenerPersonajes();
-    console.log("✅ App inicializada");
-    Personajes();
+    
+    try {
+        // Cargar todos los datos en paralelo
+        await Promise.all([
+            cargarImagenesStarWars(),
+            obtenerPersonajes(),
+            obtenerPlanetas(),
+            obtenerNaves(),
+            obtenerEspecies(),
+            obtenerVehiculos(),
+            obtenerPeliculas()
+        ]);
+        
+        console.log("✅ App inicializada");
+        console.log(`📊 Datos cargados: ${personajes.length} personajes, ${planetas.length} planetas, ${naves.length} naves, ${especies.length} especies, ${vehiculos.length} vehículos, ${peliculas.length} películas`);
+        
+        // Cargar Home después de obtener todos los datos
+        Home();
+    } catch (error) {
+        console.error("❌ Error al inicializar la app:", error);
+        root.innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <h2 style="color: #ff4444;">Error al cargar la aplicación</h2>
+                <p style="color: #aaa; margin-top: 1rem;">Por favor, recarga la página</p>
+                <button onclick="location.reload()" style="margin-top: 2rem; padding: 1rem 2rem; background: var(--color-primary); color: var(--color-secondary); border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Recargar</button>
+            </div>
+        `;
+    }
 }
 
 window.addEventListener("load", inicializarApp);
