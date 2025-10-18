@@ -26,6 +26,18 @@ async function cargarImagenesStarWars() {
     }
 }
 
+// 🖼️ Generar atributo onerror con cascada completa (WebP → JPG → GitHub → SVG)
+function generarAtributoOnerror(rutaJPG, imgGitHub, fallback) {
+    if (imgGitHub) {
+        // WebP → JPG → GitHub → Fallback
+        return `onerror="this.onerror=function(){this.onerror=function(){this.onerror=null;this.src='${imgGitHub}';this.onerror=function(){this.src='${fallback}';}};this.src='${fallback}';}; this.src='${rutaJPG}';"`;
+    } else {
+        // WebP → JPG → Fallback directo
+        return `onerror="this.onerror=function(){this.src='${fallback}';}; this.src='${rutaJPG}';"`;
+    }
+}
+
+
 // =======================
 // 🧩 Utilidades
 // =======================
@@ -139,10 +151,12 @@ async function obtenerPlanetas() {
         const res = await fetch(`${BASE_URL}/planets?page=1&limit=100`);
         const data = await res.json();
 
-        planetas = data.results.map((p) => ({
-            ...p,
-            image: `img/planetas/${normalizarNombreArchivo(p.name)}.webp`
-        }));
+        planetas = data.results
+            .filter(p => p.name.toLowerCase() !== "unknown") // 👈 ESTE FILTRO
+            .map((p) => ({
+                ...p,
+                image: `img/planeta/${normalizarNombreArchivo(p.name)}.webp`
+            }));
 
         return planetas;
     } catch (error) {
@@ -150,6 +164,7 @@ async function obtenerPlanetas() {
         return [];
     }
 }
+
 
 // =======================
 // 🚀 NAVES
@@ -159,10 +174,12 @@ async function obtenerNaves() {
         const res = await fetch(`${BASE_URL}/starships?page=1&limit=100`);
         const data = await res.json();
 
-        naves = data.results.map((n) => ({
-            ...n,
-            image: `img/naves/${normalizarNombreArchivo(n.name)}.webp`
-        }));
+        naves = await Promise.all(
+            data.results.map(async (n) => {
+                const imagen = await obtenerImagen(n.name, 'naves');
+                return { ...n, image: imagen };
+            })
+        );
 
         return naves;
     } catch (error) {
@@ -170,6 +187,7 @@ async function obtenerNaves() {
         return [];
     }
 }
+
 
 // =======================
 // 🎬 PELÍCULAS
@@ -181,7 +199,7 @@ async function obtenerPeliculas() {
 
         peliculas = data.result.map((f) => ({
             ...f,
-            image: `img/peliculas/${normalizarNombreArchivo(f.properties.title)}.webp`
+            image: `img/films/${normalizarNombreArchivo(f.properties.title)}.webp`
         }));
 
         return peliculas;
@@ -222,7 +240,7 @@ async function obtenerDetallePlaneta(id) {
 
         planeta.uid = id;
         planeta.name = planeta.name || 'Desconocido';
-        planeta.image = `img/planetas/${normalizarNombreArchivo(planeta.name)}.webp`;
+        planeta.image = `img/planeta/${normalizarNombreArchivo(planeta.name)}.webp`;
 
         return planeta;
     } catch (error) {
@@ -262,7 +280,7 @@ async function obtenerDetallePelicula(id) {
 
         pelicula.uid = id;
         pelicula.title = pelicula.title || 'Desconocida';
-        pelicula.image = `img/peliculas/${normalizarNombreArchivo(pelicula.title)}.webp`;
+        pelicula.image = `img/films/${normalizarNombreArchivo(pelicula.title)}.webp`;
 
         return pelicula;
     } catch (error) {
@@ -271,6 +289,27 @@ async function obtenerDetallePelicula(id) {
     }
 }
 
+// =============================================================================
+// ⭐ FAVORITOS
+// =============================================================================
+
+function cargarFavoritos() {
+    if (!favoritos) favoritos = [];
+    return favoritos;
+}
+
+function agregarFavorito(item) {
+    const existe = favoritos.find(f => f.uid === item.uid && f.tipo === item.tipo);
+    if (!existe) favoritos.push(item);
+}
+
+function eliminarFavorito(uid, tipo) {
+    favoritos = favoritos.filter(f => !(f.uid === uid && f.tipo === tipo));
+}
+
+function esFavorito(uid, tipo) {
+    return favoritos.some(f => f.uid === uid && f.tipo === tipo);
+}
 
 // =======================
 // 🚀 Inicialización
