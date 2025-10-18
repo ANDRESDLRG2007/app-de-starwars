@@ -1,4 +1,8 @@
-// Generar HTML de favoritos
+// =============================================================================
+// ⭐ FAVORITOS - Sistema con cascada de imágenes
+// =============================================================================
+
+// Generar HTML de favoritos con cascada de imágenes
 function generarListaFavoritos() {
     if (favoritos.length === 0) {
         return `
@@ -18,29 +22,28 @@ function generarListaFavoritos() {
     
     for (let i = 0; i < favoritos.length; i++) {
         const fav = favoritos[i];
-        let imgUrl = "";
         let clickFunction = "";
         let icono = "";
         let tipo = "";
         
+        // Construir rutas de imagen con cascada
+        const tipoImagen = getTipoParaImagen(fav.tipo);
+        const imgWebP = construirRutaLocal(fav.nombre, tipoImagen, 'webp');
+        const imgJPG = construirRutaLocal(fav.nombre, tipoImagen, 'jpg');
+        const imgGitHub = obtenerImagenGitHub(fav.nombre);
+        const imgFallback = obtenerImagenPorDefecto(tipoImagen, fav.nombre, fav.uid);
+        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
+        
         if (fav.tipo === 'personaje') {
-            imgUrl = `${IMG_BASE}/characters/${fav.uid}.jpg`;
             clickFunction = `DetallePersonaje('${fav.uid}')`;
             icono = "🧍‍♂️";
-            tipo = 'characters';
         } else if (fav.tipo === 'planeta') {
-            imgUrl = `${IMG_BASE}/planets/${fav.uid}.jpg`;
             clickFunction = `DetallePlaneta('${fav.uid}')`;
             icono = "🌍";
-            tipo = 'planets';
         } else if (fav.tipo === 'nave') {
-            imgUrl = `${IMG_BASE}/starships/${fav.uid}.jpg`;
             clickFunction = `DetalleNave('${fav.uid}')`;
             icono = "🚀";
-            tipo = 'starships';
         }
-        
-        const placeholder = obtenerImagenPorDefecto(tipo, fav.nombre, fav.uid);
         
         listaHTML += `
         <div class="card-favorito">
@@ -48,7 +51,7 @@ function generarListaFavoritos() {
                 ✕
             </button>
             <div onclick="${clickFunction}" style="cursor: pointer;">
-                <img src="${imgUrl}" alt="${fav.nombre}" onerror="this.src='${placeholder}'">
+                <img src="${imgWebP}" alt="${fav.nombre}" ${attrOnerror}>
                 <h3>${icono} ${fav.nombre}</h3>
                 <p style="background: rgba(255, 232, 31, 0.2); padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; color: var(--color-primary); display: inline-block; margin-top: 0.5rem;">${fav.tipo}</p>
             </div>
@@ -56,6 +59,16 @@ function generarListaFavoritos() {
     }
     
     return listaHTML;
+}
+
+// Helper: convertir tipo de favorito a tipo de imagen
+function getTipoParaImagen(tipoFavorito) {
+    const mapping = {
+        'personaje': 'characters',
+        'planeta': 'planets',
+        'nave': 'starships'
+    };
+    return mapping[tipoFavorito] || 'characters';
 }
 
 // Eliminar favorito y actualizar vista

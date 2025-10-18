@@ -1,13 +1,6 @@
-// 🧠 Obtener imagen de personaje desde la API de GitHub o usar placeholder
-function obtenerImagenPersonaje(nombre, id) {
-    if (typeof obtenerImagen === "function") {
-        // Usa la función global definida en conexion.js
-        return obtenerImagen(nombre, 'characters', id);
-    } else {
-        // Fallback si la función global no está disponible aún
-        return obtenerImagenPorDefecto('characters', nombre, id);
-    }
-}
+// =============================================================================
+// 🧍‍♂️ PERSONAJES - Sistema con cascada de imágenes
+// =============================================================================
 
 // 🔍 Buscador de personajes
 function buscarPersonajes(texto) {
@@ -21,19 +14,26 @@ function buscarPersonajes(texto) {
     }
 }
 
-// 🧱 Generar HTML de lista de personajes
+// 🧱 Generar HTML de lista de personajes con cascada
 function generarListaPersonajes(arrayPersonajes) {
     let listaHTML = "";
 
     for (let i = 0; i < arrayPersonajes.length; i++) {
         const id = arrayPersonajes[i].uid;
         const nombre = arrayPersonajes[i].name;
-        const imgUrl = obtenerImagenPersonaje(nombre, id);
-        const placeholder = obtenerImagenPorDefecto('characters', nombre, id);
+        
+        // Obtener todas las URLs de imagen
+        const imgWebP = arrayPersonajes[i].image;
+        const imgJPG = arrayPersonajes[i].imageJPG;
+        const imgGitHub = arrayPersonajes[i].imageGitHub;
+        const imgFallback = arrayPersonajes[i].imageFallback;
+        
+        // Construir atributo onerror con cascada completa
+        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-personaje" onclick="DetallePersonaje('${id}')">
-            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
+            <img src="${imgWebP}" alt="${nombre}" ${attrOnerror}>
             <h3>${nombre}</h3>
             <p>#${id}</p>
         </div>`;
@@ -95,8 +95,10 @@ async function DetallePersonaje(id) {
         return;
     }
 
-    const imgUrl = obtenerImagenPersonaje(data.name, id);
-    const placeholder = obtenerImagenPorDefecto('characters', data.name, id);
+    const imgLocal = data.image;
+    const imgGitHub = data.imageGitHub;
+    const imgFallback = data.imageFallback;
+    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
     const isFav = esFavorito(id, 'personaje');
 
     const detalle = document.createElement("div");
@@ -105,7 +107,7 @@ async function DetallePersonaje(id) {
         <button class="btn-volver" onclick="Personajes()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgUrl}" alt="${data.name}" onerror="this.src='${placeholder}'">
+            <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
             <div class="detalle-info">
                 <h1>${data.name}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}"

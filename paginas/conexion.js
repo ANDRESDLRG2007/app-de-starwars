@@ -15,57 +15,100 @@ async function cargarImagenesStarWars() {
     try {
         const res = await fetch(IMG_URL);
         imagenesStarWars = await res.json();
-        console.log(`Imágenes cargadas (${imagenesStarWars.length})`);
+        console.log(`✅ Imágenes cargadas (${imagenesStarWars.length})`);
     } catch (error) {
-        console.error('Error al cargar imágenes desde GitHub:', error);
+        console.error('❌ Error al cargar imágenes desde GitHub:', error);
         imagenesStarWars = [];
     }
 }
 
-// 🔍 Buscar imagen asociada a un nombre (o usar placeholder)
-function obtenerImagen(nombre, tipo, id) {
-    if (!imagenesStarWars || imagenesStarWars.length === 0) {
-        return obtenerImagenPorDefecto(tipo, nombre, id);
-    }
+// =============================================================================
+// 🎯 SISTEMA DE CASCADA DE IMÁGENES
+// =============================================================================
+// Prioridad: Local → GitHub → Placeholder SVG
 
-    // Buscar coincidencia aproximada por nombre
-    const imgData = imagenesStarWars.find(
-        p => p.name.toLowerCase().includes(nombre.toLowerCase())
-    );
-
-    return imgData?.image || obtenerImagenPorDefecto(tipo, nombre, id);
+// 🔡 Normalizar nombre para archivo
+function normalizarNombreArchivo(nombre) {
+    return nombre
+        .toLowerCase()
+        .replace(/\s+/g, '_')  // Espacios → guiones bajos
+        .replace(/[áàäâ]/g, 'a')
+        .replace(/[éèëê]/g, 'e')
+        .replace(/[íìïî]/g, 'i')
+        .replace(/[óòöô]/g, 'o')
+        .replace(/[úùüû]/g, 'u')
+        .replace(/ñ/g, 'n')
+        .replace(/[^a-z0-9_-]/g, ''); // Eliminar caracteres especiales
 }
 
-// 🧱 Placeholder SVG
-function obtenerImagenPorDefecto(tipo, nombre, id) {
-    const configs = {
-        'characters': { emoji: '👤', color: 'FFE81F', bg: '1a1a1a' },
-        'planets': { emoji: '🌍', color: '4CAF50', bg: '0a1a0a' },
-        'starships': { emoji: '🚀', color: '2196F3', bg: '0a0a1a' },
-        'films': { emoji: '🎬', color: 'FF5722', bg: '1a0a0a' }
+// 🗂️ Construir ruta de imagen local
+function construirRutaLocal(nombre, tipo, extension = 'webp') {
+    const nombreArchivo = normalizarNombreArchivo(nombre);
+    
+    const carpetas = {
+        'characters': 'img/personajes',
+        'planets': 'img/planetas',
+        'starships': 'img/naves',
+        'films': 'img/peliculas'
     };
-
-    const config = configs[tipo] || configs['characters'];
-    const nombreCorto = nombre.substring(0, 20);
-
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cdefs%3E%3ClinearGradient id='g${id}' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23${config.bg}'/%3E%3Cstop offset='100%25' style='stop-color:%23000'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g${id})' width='400' height='400'/%3E%3Ccircle cx='200' cy='160' r='70' fill='%23${config.color}' opacity='0.15'/%3E%3Ctext fill='%23${config.color}' font-size='100' x='200' y='210' text-anchor='middle' dominant-baseline='middle'%3E${config.emoji}%3C/text%3E%3Ctext fill='%23${config.color}' font-size='20' x='200' y='300' text-anchor='middle' font-weight='bold'%3E${encodeURIComponent(nombreCorto)}%3C/text%3E%3C/svg%3E`;
+    
+    const carpeta = carpetas[tipo] || carpetas['characters'];
+    return `${carpeta}/${nombreArchivo}.${extension}`;
 }
 
-// 🧩 Utilidad
+// 🎯 Función principal: Obtener imagen con cascada completa
+function obtenerImagen(nombre, tipo, id) {
+    const rutaWebP = construirRutaLocal(nombre, tipo, 'webp');
+    const rutaJPG = construirRutaLocal(nombre, tipo, 'jpg');
+    const imgGitHub = obtenerImagenGitHub(nombre);
+    const fallback = obtenerImagenPorDefecto(tipo, nombre, id);
+    
+    return {
+        src: rutaWebP,  // Intentar primero WebP (más común)
+        jpg: rutaJPG,   // Fallback a JPG
+        github: imgGitHub,  // Fallback a GitHub
+        fallback: fallback  // Fallback final
+    };
+}
+
+// 🖼️ Generar atributo onerror con cascada completa (WebP → JPG → GitHub → SVG)
+function generarAtributoOnerror(rutaJPG, imgGitHub, fallback) {
+    if (imgGitHub) {
+        // WebP → JPG → GitHub → Fallback
+        return `onerror="this.onerror=function(){this.onerror=function(){this.onerror=null;this.src='${imgGitHub}';this.onerror=function(){this.src='${fallback}';}};this.src='${fallback}';}; this.src='${rutaJPG}';"`;
+    } else {
+        // WebP → JPG → Fallback directo
+        return `onerror="this.onerror=function(){this.src='${fallback}';}; this.src='${rutaJPG}';"`;
+    }
+}
+
+// =============================================================================
+// 🧩 UTILIDADES
+// =============================================================================
+
 function obtenerID(url) {
     const partes = url.split('/');
     return partes[partes.length - 2];
 }
 
+// =============================================================================
 // 🌌 PERSONAJES
+// =============================================================================
+
 async function obtenerPersonajes() {
     try {
         const res = await fetch(`${BASE_URL}/people?page=1&limit=100`);
         const data = await res.json();
-        personajes = data.results.map((p, index) => ({
-            ...p,
-            image: obtenerImagen(p.name, 'characters', index)
-        }));
+        personajes = data.results.map((p, index) => {
+            const imgs = obtenerImagen(p.name, 'characters', index);
+            return {
+                ...p,
+                image: imgs.src,
+                imageJPG: imgs.jpg,
+                imageGitHub: imgs.github,
+                imageFallback: imgs.fallback
+            };
+        });
         return personajes;
     } catch (error) {
         console.error('Error al obtener personajes:', error);
@@ -78,7 +121,11 @@ async function obtenerDetallePersonaje(id) {
         const res = await fetch(`${BASE_URL}/people/${id}`);
         const data = await res.json();
         const personaje = data.result.properties;
-        personaje.image = obtenerImagen(personaje.name, 'characters', id);
+        const imgs = obtenerImagen(personaje.name, 'characters', id);
+        personaje.image = imgs.src;
+        personaje.imageJPG = imgs.jpg;
+        personaje.imageGitHub = imgs.github;
+        personaje.imageFallback = imgs.fallback;
         return personaje;
     } catch (error) {
         console.error('Error al obtener detalle personaje:', error);
@@ -86,15 +133,24 @@ async function obtenerDetallePersonaje(id) {
     }
 }
 
+// =============================================================================
 // 🪐 PLANETAS
+// =============================================================================
+
 async function obtenerPlanetas() {
     try {
         const res = await fetch(`${BASE_URL}/planets?page=1&limit=100`);
         const data = await res.json();
-        planetas = data.results.map((p, index) => ({
-            ...p,
-            image: obtenerImagen(p.name, 'planets', index)
-        }));
+        planetas = data.results.map((p, index) => {
+            const imgs = obtenerImagen(p.name, 'planets', index);
+            return {
+                ...p,
+                image: imgs.src,
+                imageJPG: imgs.jpg,
+                imageGitHub: imgs.github,
+                imageFallback: imgs.fallback
+            };
+        });
         return planetas;
     } catch (error) {
         console.error('Error al obtener planetas:', error);
@@ -107,7 +163,11 @@ async function obtenerDetallePlaneta(id) {
         const res = await fetch(`${BASE_URL}/planets/${id}`);
         const data = await res.json();
         const planeta = data.result.properties;
-        planeta.image = obtenerImagen(planeta.name, 'planets', id);
+        const imgs = obtenerImagen(planeta.name, 'planets', id);
+        planeta.image = imgs.src;
+        planeta.imageJPG = imgs.jpg;
+        planeta.imageGitHub = imgs.github;
+        planeta.imageFallback = imgs.fallback;
         return planeta;
     } catch (error) {
         console.error('Error al obtener detalle planeta:', error);
@@ -115,15 +175,23 @@ async function obtenerDetallePlaneta(id) {
     }
 }
 
+// =============================================================================
 // 🚀 NAVES
+// =============================================================================
+
 async function obtenerNaves() {
     try {
         const res = await fetch(`${BASE_URL}/starships?page=1&limit=100`);
         const data = await res.json();
-        naves = data.results.map((n, index) => ({
-            ...n,
-            image: obtenerImagen(n.name, 'starships', index)
-        }));
+        naves = data.results.map((n, index) => {
+            const imgs = obtenerImagen(n.name, 'starships', index);
+            return {
+                ...n,
+                image: imgs.src,
+                imageGitHub: imgs.github,
+                imageFallback: imgs.fallback
+            };
+        });
         return naves;
     } catch (error) {
         console.error('Error al obtener naves:', error);
@@ -136,7 +204,10 @@ async function obtenerDetalleNave(id) {
         const res = await fetch(`${BASE_URL}/starships/${id}`);
         const data = await res.json();
         const nave = data.result.properties;
-        nave.image = obtenerImagen(nave.name, 'starships', id);
+        const imgs = obtenerImagen(nave.name, 'starships', id);
+        nave.image = imgs.src;
+        nave.imageGitHub = imgs.github;
+        nave.imageFallback = imgs.fallback;
         return nave;
     } catch (error) {
         console.error('Error al obtener detalle nave:', error);
@@ -144,15 +215,23 @@ async function obtenerDetalleNave(id) {
     }
 }
 
+// =============================================================================
 // 🎬 PELÍCULAS
+// =============================================================================
+
 async function obtenerPeliculas() {
     try {
         const res = await fetch(`${BASE_URL}/films`);
         const data = await res.json();
-        peliculas = data.result?.map((f, index) => ({
-            ...f,
-            image: obtenerImagen(f.properties.title, 'films', index)
-        })) || [];
+        peliculas = data.result?.map((f, index) => {
+            const imgs = obtenerImagen(f.properties.title, 'films', index);
+            return {
+                ...f,
+                image: imgs.src,
+                imageGitHub: imgs.github,
+                imageFallback: imgs.fallback
+            };
+        }) || [];
         return peliculas;
     } catch (error) {
         console.error('Error al obtener películas:', error);
@@ -165,7 +244,10 @@ async function obtenerDetallePelicula(id) {
         const res = await fetch(`${BASE_URL}/films/${id}`);
         const data = await res.json();
         const pelicula = data.result.properties;
-        pelicula.image = obtenerImagen(pelicula.title, 'films', id);
+        const imgs = obtenerImagen(pelicula.title, 'films', id);
+        pelicula.image = imgs.src;
+        pelicula.imageGitHub = imgs.github;
+        pelicula.imageFallback = imgs.fallback;
         return pelicula;
     } catch (error) {
         console.error('Error al obtener detalle película:', error);
@@ -173,7 +255,10 @@ async function obtenerDetallePelicula(id) {
     }
 }
 
-// ⭐ Favoritos
+// =============================================================================
+// ⭐ FAVORITOS
+// =============================================================================
+
 function cargarFavoritos() {
     if (!favoritos) favoritos = [];
     return favoritos;
@@ -192,11 +277,16 @@ function esFavorito(uid, tipo) {
     return favoritos.some(f => f.uid === uid && f.tipo === tipo);
 }
 
-// 🚀 Inicialización
+// =============================================================================
+// 🚀 INICIALIZACIÓN
+// =============================================================================
+
 async function inicializarApp() {
+    console.log('🚀 Iniciando Star Wars Encyclopedia...');
     await cargarImagenesStarWars(); // Primero cargamos las imágenes
     cargarFavoritos();
     await obtenerPersonajes();
+    console.log('✅ App inicializada');
     Personajes();
 }
 

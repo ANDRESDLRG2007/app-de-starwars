@@ -1,15 +1,8 @@
-// 🎬 Obtener imagen de película desde la API de GitHub o usar placeholder
-function obtenerImagenPelicula(nombre, id) {
-    if (typeof obtenerImagen === "function") {
-        // Usa la función global del archivo conexion.js
-        return obtenerImagen(nombre, 'films', id);
-    } else {
-        // Fallback por si conexion.js aún no cargó
-        return obtenerImagenPorDefecto('films', nombre, id);
-    }
-}
+// =============================================================================
+// 🎬 PELÍCULAS - Sistema con cascada de imágenes
+// =============================================================================
 
-// 🎞️ Generar HTML de lista de películas
+// 🎞️ Generar HTML de lista de películas con cascada
 function generarListaPeliculas(arrayPeliculas) {
     let listaHTML = "";
 
@@ -18,12 +11,15 @@ function generarListaPeliculas(arrayPeliculas) {
         const titulo = arrayPeliculas[i].properties.title;
         const episodio = arrayPeliculas[i].properties.episode_id;
 
-        const imgUrl = obtenerImagenPelicula(titulo, id);
-        const placeholder = obtenerImagenPorDefecto('films', titulo, id);
+        const imgWebP = arrayPeliculas[i].image;
+        const imgJPG = arrayPeliculas[i].imageJPG;
+        const imgGitHub = arrayPeliculas[i].imageGitHub;
+        const imgFallback = arrayPeliculas[i].imageFallback;
+        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-pelicula" onclick="DetallePelicula('${id}')">
-            <img src="${imgUrl}" alt="${titulo}" onerror="this.src='${placeholder}'">
+            <img src="${imgWebP}" alt="${titulo}" ${attrOnerror}>
             <h3>Episodio ${episodio}</h3>
             <p>${titulo}</p>
         </div>`;
@@ -76,8 +72,10 @@ async function DetallePelicula(id) {
         return;
     }
 
-    const imgUrl = obtenerImagenPelicula(data.title, id);
-    const placeholder = obtenerImagenPorDefecto('films', data.title, id);
+    const imgLocal = data.image;
+    const imgGitHub = data.imageGitHub;
+    const imgFallback = data.imageFallback;
+    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
 
     const detalle = document.createElement("div");
     detalle.className = "detalle-container pelicula-detalle";
@@ -85,7 +83,7 @@ async function DetallePelicula(id) {
         <button class="btn-volver" onclick="Peliculas()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgUrl}" alt="${data.title}" onerror="this.src='${placeholder}'">
+            <img src="${imgLocal}" alt="${data.title}" ${attrOnerror}>
             <div class="detalle-info">
                 <h1>Episodio ${data.episode_id}</h1>
                 <h2 style="color: #fff; margin-bottom: 1rem;">${data.title}</h2>

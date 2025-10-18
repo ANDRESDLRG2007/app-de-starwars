@@ -1,3 +1,7 @@
+// =============================================================================
+// 🚀 NAVES - Sistema con cascada de imágenes
+// =============================================================================
+
 // 🔍 Buscar naves
 function buscarNaves(texto) {
     if (texto.length >= 3) {
@@ -10,30 +14,23 @@ function buscarNaves(texto) {
     }
 }
 
-// 🚀 Obtener imagen de GitHub o placeholder
-function obtenerImagenNave(nombre, id) {
-    if (typeof obtenerImagen === "function") {
-        // Usa la función global definida en conexion.js
-        return obtenerImagen(nombre, 'starships', id);
-    } else {
-        // Fallback, si se carga antes de conexion.js
-        return obtenerImagenPorDefecto('starships', nombre, id);
-    }
-}
-
-// 🧩 Generar HTML de lista de naves
+// 🧩 Generar HTML de lista de naves con cascada
 function generarListaNaves(arrayNaves) {
     let listaHTML = "";
 
     for (let i = 0; i < arrayNaves.length; i++) {
         const id = arrayNaves[i].uid;
         const nombre = arrayNaves[i].name;
-        const imgUrl = obtenerImagenNave(nombre, id);
-        const placeholder = obtenerImagenPorDefecto('starships', nombre, id);
+        
+        const imgWebP = arrayNaves[i].image;
+        const imgJPG = arrayNaves[i].imageJPG;
+        const imgGitHub = arrayNaves[i].imageGitHub;
+        const imgFallback = arrayNaves[i].imageFallback;
+        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-nave" onclick="DetalleNave('${id}')">
-            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
+            <img src="${imgWebP}" alt="${nombre}" ${attrOnerror}>
             <h3>${nombre}</h3>
             <p>ID: ${id}</p>
         </div>`;
@@ -95,9 +92,10 @@ async function DetalleNave(id) {
         return;
     }
 
-    const nombre = data.name;
-    const imgUrl = obtenerImagenNave(nombre, id);
-    const placeholder = obtenerImagenPorDefecto('starships', nombre, id);
+    const imgLocal = data.image;
+    const imgGitHub = data.imageGitHub;
+    const imgFallback = data.imageFallback;
+    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
     const isFav = esFavorito(id, 'nave');
 
     const detalle = document.createElement("div");
@@ -106,11 +104,11 @@ async function DetalleNave(id) {
         <button class="btn-volver" onclick="Naves()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
+            <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
             <div class="detalle-info">
-                <h1>${nombre}</h1>
+                <h1>${data.name}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}" 
-                        onclick="toggleFavorito('${id}', 'nave', '${nombre}')">
+                        onclick="toggleFavorito('${id}', 'nave', '${data.name}')">
                     ${isFav ? '⭐ Favorito' : '☆ Añadir a Favoritos'}
                 </button>
 

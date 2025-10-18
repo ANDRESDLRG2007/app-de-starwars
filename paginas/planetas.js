@@ -1,3 +1,7 @@
+// =============================================================================
+// 🪐 PLANETAS - Sistema con cascada de imágenes
+// =============================================================================
+
 // 🔍 Buscar planetas
 function buscarPlanetas(texto) {
     if (texto.length >= 3) {
@@ -10,30 +14,23 @@ function buscarPlanetas(texto) {
     }
 }
 
-// 🪐 Obtener imagen desde GitHub o placeholder
-function obtenerImagenPlaneta(nombre, id) {
-    if (typeof obtenerImagen === "function") {
-        // Usa la función global definida en conexion.js
-        return obtenerImagen(nombre, 'planets', id);
-    } else {
-        // Fallback, por si el script se carga antes de conexion.js
-        return obtenerImagenPorDefecto('planets', nombre, id);
-    }
-}
-
-// 🧩 Generar HTML de lista de planetas
+// 🧩 Generar HTML de lista de planetas con cascada
 function generarListaPlanetas(arrayPlanetas) {
     let listaHTML = "";
 
     for (let i = 0; i < arrayPlanetas.length; i++) {
         const id = arrayPlanetas[i].uid;
         const nombre = arrayPlanetas[i].name;
-        const imgUrl = obtenerImagenPlaneta(nombre, id);
-        const placeholder = obtenerImagenPorDefecto('planets', nombre, id);
+        
+        const imgWebP = arrayPlanetas[i].image;
+        const imgJPG = arrayPlanetas[i].imageJPG;
+        const imgGitHub = arrayPlanetas[i].imageGitHub;
+        const imgFallback = arrayPlanetas[i].imageFallback;
+        const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-planeta" onclick="DetallePlaneta('${id}')">
-            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
+            <img src="${imgWebP}" alt="${nombre}" ${attrOnerror}>
             <h3>${nombre}</h3>
             <p>ID: ${id}</p>
         </div>`;
@@ -95,9 +92,10 @@ async function DetallePlaneta(id) {
         return;
     }
 
-    const nombre = data.name;
-    const imgUrl = obtenerImagenPlaneta(nombre, id);
-    const placeholder = obtenerImagenPorDefecto('planets', nombre, id);
+    const imgLocal = data.image;
+    const imgGitHub = data.imageGitHub;
+    const imgFallback = data.imageFallback;
+    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
     const isFav = esFavorito(id, 'planeta');
 
     const detalle = document.createElement("div");
@@ -106,11 +104,11 @@ async function DetallePlaneta(id) {
         <button class="btn-volver" onclick="Planetas()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgUrl}" alt="${nombre}" onerror="this.src='${placeholder}'">
+            <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
             <div class="detalle-info">
-                <h1>${nombre}</h1>
+                <h1>${data.name}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}" 
-                        onclick="toggleFavorito('${id}', 'planeta', '${nombre}')">
+                        onclick="toggleFavorito('${id}', 'planeta', '${data.name}')">
                     ${isFav ? '⭐ Favorito' : '☆ Añadir a Favoritos'}
                 </button>
 

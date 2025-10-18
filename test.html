@@ -183,7 +183,8 @@
             const resultados = {
                 personajes: { total: 0, conImagen: 0, sinImagen: [] },
                 naves: { total: 0, conImagen: 0, sinImagen: [] },
-                peliculas: { total: 0, conImagen: 0, sinImagen: [] }
+                peliculas: { total: 0, conImagen: 0, sinImagen: [] },
+                planetas: { total: 0, conImagen: 0, sinImagen: [] }
             };
 
             try {
@@ -224,6 +225,19 @@
                     else resultados.peliculas.sinImagen.push({ nombre: f.properties.title, url: imgUrl });
                 }
 
+                // 🌍 4️⃣ PLANETAS
+                const resPlanets = await fetch("https://swapi.tech/api/planets");
+                const planetsData = await resPlanets.json();
+                resultados.planetas.total = planetsData.results.length;
+
+                for (const p of planetsData.results) {
+                    const id = p.uid;
+                    const imgUrl = `https://starwars-visualguide.com/assets/img/planets/${id}.jpg`;
+                    const ok = await verificarImagen(imgUrl);
+                    if (ok) resultados.planetas.conImagen++;
+                    else resultados.planetas.sinImagen.push({ nombre: p.name, url: imgUrl });
+                }
+
                 diag.innerHTML = `
                     <div class="diagnostico">
                         <h3>📈 Resumen General</h3>
@@ -231,6 +245,7 @@
                             <li>👤 Personajes: ${resultados.personajes.conImagen}/${resultados.personajes.total}</li>
                             <li>🚀 Naves: ${resultados.naves.conImagen}/${resultados.naves.total}</li>
                             <li>🎬 Películas: ${resultados.peliculas.conImagen}/${resultados.peliculas.total}</li>
+                            <li>🌍 Planetas: ${resultados.planetas.conImagen}/${resultados.planetas.total}</li>
                         </ul>
 
                         <h3 style="color:#FF5050;">⚠️ Imágenes Faltantes</h3>
@@ -248,6 +263,11 @@
                         <details>
                             <summary>🎬 Películas (${resultados.peliculas.sinImagen.length})</summary>
                             <ul>${resultados.peliculas.sinImagen.map(f => `<li>${f.nombre} → <a href="${f.url}" target="_blank">${f.url}</a></li>`).join('')}</ul>
+                        </details>
+
+                        <details>
+                            <summary>🌍 Planetas (${resultados.planetas.sinImagen.length})</summary>
+                            <ul>${resultados.planetas.sinImagen.map(p => `<li>${p.nombre} → <a href="${p.url}" target="_blank">${p.url}</a></li>`).join('')}</ul>
                         </details>
                     </div>
                 `;
