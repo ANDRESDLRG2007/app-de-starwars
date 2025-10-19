@@ -1,5 +1,5 @@
 // ================================================================
-// 🌌 Star Wars Encyclopedia - conexion.js (con Especies y Vehículos)
+// 🌌 Star Wars Encyclopedia - conexion.js (LAZY LOADING)
 // ================================================================
 
 let personajes = [];
@@ -11,6 +11,13 @@ let vehiculos = [];
 let favoritos = [];
 let imagenesStarWars = [];
 
+// Flags para saber si ya se cargaron los detalles
+let personajesDetallesCargados = false;
+let planetasDetallesCargados = false;
+let navesDetallesCargados = false;
+let especiesDetallesCargados = false;
+let vehiculosDetallesCargados = false;
+
 const BASE_URL = 'https://www.swapi.tech/api';
 const IMG_URL = 'https://akabab.github.io/starwars-api/api/all.json';
 
@@ -21,21 +28,10 @@ async function cargarImagenesStarWars() {
     try {
         const res = await fetch(IMG_URL);
         imagenesStarWars = await res.json();
-        console.log(`✅ Imágenes cargadas (${imagenesStarWars.length})`);
+        console.log(`✅ Imágenes: ${imagenesStarWars.length}`);
     } catch (error) {
-        console.error('❌ Error al cargar imágenes desde GitHub:', error);
+        console.error('❌ Error al cargar imágenes:', error);
         imagenesStarWars = [];
-    }
-}
-
-// 🖼️ Generar atributo onerror con cascada completa (WebP → JPG → GitHub → SVG)
-function generarAtributoOnerror(rutaJPG, imgGitHub, fallback) {
-    if (imgGitHub) {
-        // WebP → JPG → GitHub → Fallback
-        return `onerror="this.onerror=function(){this.onerror=function(){this.onerror=null;this.src='${imgGitHub}';this.onerror=function(){this.src='${fallback}';}};this.src='${fallback}';}; this.src='${rutaJPG}';"`;
-    } else {
-        // WebP → JPG → Fallback directo
-        return `onerror="this.onerror=function(){this.src='${fallback}';}; this.src='${rutaJPG}';"`;
     }
 }
 
@@ -55,82 +51,63 @@ function normalizarNombreArchivo(nombre) {
         .replace(/[^a-z0-9_-]/g, '');
 }
 
-// ✅ Verifica si una imagen existe (usa GET si el HEAD falla)
-async function verificarImagen(url) {
-    try {
-        // Primero intentamos con HEAD
-        let respuesta = await fetch(url, { method: "HEAD" });
-
-        // Si falla (algunos entornos bloquean HEAD), probamos con GET
-        if (!respuesta.ok) {
-            respuesta = await fetch(url);
-        }
-
-        // Devuelve true si la respuesta fue válida
-        return respuesta.ok;
-    } catch (error) {
-        console.warn(`⚠️ No se pudo verificar la imagen: ${url}`, error);
-        return false;
-    }
-}
-
 // =======================
-// 🖼️ Flujo GitHub → Local → Fallback (solo para personajes)
+// 🖼️ Obtener imagen CON CACHÉ localStorage
 // =======================
 async function obtenerImagen(nombre, categoria = "personajes") {
+    const key = `img_${categoria}_${nombre}`;
+    const cache = localStorage.getItem(key);
+    if (cache) return cache;
+    
     const nombreNormalizado = normalizarNombreArchivo(nombre);
     const fallback = "img/fallback.webp";
-
-    // Buscar en el dataset de Akabab
+    
     const personajeAkabab = imagenesStarWars.find(
         img => img.name.toLowerCase() === nombre.toLowerCase()
     );
-
-    // 1️⃣ Intentar con la URL de Akabab si existe
-    if (personajeAkabab && personajeAkabab.image) {
-        const url = personajeAkabab.image;
-
-        const cargaValida = await verificarImagen(url);
-
-        if (cargaValida) {
-            console.log(`🟢 Imagen GitHub usada: ${nombre}`);
-            return url;
-        } else {
-            console.warn(`⚠️ Imagen GitHub rota o bloqueada: ${nombre}`);
-        }
-    }
-
-    // 2️⃣ Intentar versión local
-    const rutaLocal = `img/${categoria}/${nombreNormalizado}.webp`;
-    const existeLocal = await new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = rutaLocal;
-    });
-
-    if (existeLocal) {
-        console.log(`🟠 Imagen local usada: ${nombre}`);
-        return rutaLocal;
-    }
-
-    // 3️⃣ Si todo falla → fallback genérico
-    console.error(`🔴 No se encontró imagen ni en Akabab ni local para: ${nombre}`);
-    return fallback;
+    
+    const url = personajeAkabab?.image || `img/${categoria}/${nombreNormalizado}.webp`;
+    localStorage.setItem(key, url);
+    return url;
 }
 
 // =======================
-// 🌌 PERSONAJES
+// 🌌 PERSONAJES - LISTA BÁSICA (sin detalles ni imágenes)
 // =======================
-async function obtenerPersonajes() {
+async function obtenerPersonajesBasico() {
     try {
         const res = await fetch(`${BASE_URL}/people?page=1&limit=100`);
         const data = await res.json();
 
+        personajes = data.results.map(p => ({
+            uid: p.uid,
+            name: p.name,
+            image: null // Sin imagen aún
+        }));
+
+        console.log(`✅ Personajes (básico): ${personajes.length}`);
+        return personajes;
+    } catch (error) {
+        console.error('❌ Error al obtener personajes:', error);
+        return [];
+    }
+}
+
+// =======================
+// 🌌 PERSONAJES - CARGAR DETALLES COMPLETOS (con imágenes)
+// =======================
+async function cargarDetallesPersonajes() {
+    if (personajesDetallesCargados) {
+        console.log('✅ Detalles de personajes ya cargados');
+        return personajes;
+    }
+
+    console.log('⏳ Cargando detalles de personajes...');
+    
+    try {
         personajes = await Promise.all(
-            data.results.map(async (p) => {
+            personajes.map(async (p) => {
                 try {
-                    // Obtener detalles completos de cada personaje
                     const detailRes = await fetch(`${BASE_URL}/people/${p.uid}`);
                     const detailData = await detailRes.json();
                     const props = detailData.result.properties;
@@ -149,7 +126,6 @@ async function obtenerPersonajes() {
                         gender: props.gender
                     };
                 } catch (error) {
-                    console.error(`Error al obtener detalles del personaje ${p.name}:`, error);
                     const imagen = await obtenerImagen(p.name, 'personajes');
                     return {
                         uid: p.uid,
@@ -160,29 +136,54 @@ async function obtenerPersonajes() {
             })
         );
 
-        console.log("✅ Personajes cargados con detalles:", personajes[0]);
+        personajesDetallesCargados = true;
+        console.log(`✅ Detalles de personajes cargados: ${personajes.length}`);
         return personajes;
     } catch (error) {
-        console.error('Error al obtener personajes:', error);
+        console.error('❌ Error al cargar detalles de personajes:', error);
+        return personajes;
+    }
+}
+
+// =======================
+// 🪐 PLANETAS - LISTA BÁSICA
+// =======================
+async function obtenerPlanetasBasico() {
+    try {
+        const res = await fetch(`${BASE_URL}/planets?page=1&limit=100`);
+        const data = await res.json();
+
+        planetas = data.results
+            .filter(p => p.name.toLowerCase() !== "unknown")
+            .map(p => ({
+                uid: p.uid,
+                name: p.name,
+                image: `img/planeta/${normalizarNombreArchivo(p.name)}.webp`
+            }));
+
+        console.log(`✅ Planetas (básico): ${planetas.length}`);
+        return planetas;
+    } catch (error) {
+        console.error('❌ Error al obtener planetas:', error);
         return [];
     }
 }
 
 // =======================
-// 🪐 PLANETAS
+// 🪐 PLANETAS - CARGAR DETALLES COMPLETOS
 // =======================
-async function obtenerPlanetas() {
+async function cargarDetallesPlanetas() {
+    if (planetasDetallesCargados) {
+        console.log('✅ Detalles de planetas ya cargados');
+        return planetas;
+    }
+
+    console.log('⏳ Cargando detalles de planetas...');
+    
     try {
-        const res = await fetch(`${BASE_URL}/planets?page=1&limit=100`);
-        const data = await res.json();
-
-        // Filtrar planetas desconocidos
-        const planetasFiltrados = data.results.filter(p => p.name.toLowerCase() !== "unknown");
-
         planetas = await Promise.all(
-            planetasFiltrados.map(async (p) => {
+            planetas.map(async (p) => {
                 try {
-                    // Obtener detalles completos de cada planeta
                     const detailRes = await fetch(`${BASE_URL}/planets/${p.uid}`);
                     const detailData = await detailRes.json();
                     const props = detailData.result.properties;
@@ -201,36 +202,57 @@ async function obtenerPlanetas() {
                         surface_water: props.surface_water
                     };
                 } catch (error) {
-                    console.error(`Error al obtener detalles del planeta ${p.name}:`, error);
-                    return {
-                        uid: p.uid,
-                        name: p.name,
-                        image: `img/planeta/${normalizarNombreArchivo(p.name)}.webp`
-                    };
+                    return p;
                 }
             })
         );
 
-        console.log("✅ Planetas cargados con detalles:", planetas[0]);
+        planetasDetallesCargados = true;
+        console.log(`✅ Detalles de planetas cargados: ${planetas.length}`);
         return planetas;
     } catch (error) {
-        console.error('Error al obtener planetas:', error);
+        console.error('❌ Error al cargar detalles de planetas:', error);
+        return planetas;
+    }
+}
+
+// =======================
+// 🚀 NAVES - LISTA BÁSICA
+// =======================
+async function obtenerNavesBasico() {
+    try {
+        const res = await fetch(`${BASE_URL}/starships?page=1&limit=100`);
+        const data = await res.json();
+
+        naves = data.results.map(n => ({
+            uid: n.uid,
+            name: n.name,
+            image: null
+        }));
+
+        console.log(`✅ Naves (básico): ${naves.length}`);
+        return naves;
+    } catch (error) {
+        console.error('❌ Error al obtener naves:', error);
         return [];
     }
 }
 
 // =======================
-// 🚀 NAVES
+// 🚀 NAVES - CARGAR DETALLES COMPLETOS
 // =======================
-async function obtenerNaves() {
-    try {
-        const res = await fetch(`${BASE_URL}/starships?page=1&limit=100`);
-        const data = await res.json();
+async function cargarDetallesNaves() {
+    if (navesDetallesCargados) {
+        console.log('✅ Detalles de naves ya cargados');
+        return naves;
+    }
 
+    console.log('⏳ Cargando detalles de naves...');
+    
+    try {
         naves = await Promise.all(
-            data.results.map(async (n) => {
+            naves.map(async (n) => {
                 try {
-                    // Obtener detalles completos de cada nave
                     const detailRes = await fetch(`${BASE_URL}/starships/${n.uid}`);
                     const detailData = await detailRes.json();
                     const props = detailData.result.properties;
@@ -254,7 +276,6 @@ async function obtenerNaves() {
                         consumables: props.consumables
                     };
                 } catch (error) {
-                    console.error(`Error al obtener detalles de la nave ${n.name}:`, error);
                     const imagen = await obtenerImagen(n.name, 'naves');
                     return {
                         uid: n.uid,
@@ -265,46 +286,52 @@ async function obtenerNaves() {
             })
         );
 
-        console.log("✅ Naves cargadas con detalles:", naves[0]);
+        navesDetallesCargados = true;
+        console.log(`✅ Detalles de naves cargados: ${naves.length}`);
         return naves;
     } catch (error) {
-        console.error('Error al obtener naves:', error);
-        return [];
+        console.error('❌ Error al cargar detalles de naves:', error);
+        return naves;
     }
 }
 
 // =======================
-// 🎬 PELÍCULAS
+// 👽 ESPECIES - LISTA BÁSICA
 // =======================
-async function obtenerPeliculas() {
-    try {
-        const res = await fetch(`${BASE_URL}/films`);
-        const data = await res.json();
-
-        peliculas = data.result.map((f) => ({
-            ...f,
-            image: `img/films/${normalizarNombreArchivo(f.properties.title)}.webp`
-        }));
-
-        return peliculas;
-    } catch (error) {
-        console.error('Error al obtener películas:', error);
-        return [];
-    }
-}
-
-// =======================
-// 👽 ESPECIES
-// =======================
-async function obtenerEspecies() {
+async function obtenerEspeciesBasico() {
     try {
         const res = await fetch(`${BASE_URL}/species?page=1&limit=100`);
         const data = await res.json();
 
+        especies = data.results.map(e => ({
+            uid: e.uid,
+            name: e.name,
+            image: `img/especies/${normalizarNombreArchivo(e.name)}.webp`
+        }));
+
+        console.log(`✅ Especies (básico): ${especies.length}`);
+        return especies;
+    } catch (error) {
+        console.error('❌ Error al obtener especies:', error);
+        return [];
+    }
+}
+
+// =======================
+// 👽 ESPECIES - CARGAR DETALLES COMPLETOS
+// =======================
+async function cargarDetallesEspecies() {
+    if (especiesDetallesCargados) {
+        console.log('✅ Detalles de especies ya cargados');
+        return especies;
+    }
+
+    console.log('⏳ Cargando detalles de especies...');
+    
+    try {
         especies = await Promise.all(
-            data.results.map(async (e) => {
+            especies.map(async (e) => {
                 try {
-                    // Obtener detalles completos de cada especie
                     const detailRes = await fetch(`${BASE_URL}/species/${e.uid}`);
                     const detailData = await detailRes.json();
                     const props = detailData.result.properties;
@@ -323,36 +350,57 @@ async function obtenerEspecies() {
                         language: props.language
                     };
                 } catch (error) {
-                    console.error(`Error al obtener detalles de la especie ${e.name}:`, error);
-                    return {
-                        uid: e.uid,
-                        name: e.name,
-                        image: `img/especies/${normalizarNombreArchivo(e.name)}.webp`
-                    };
+                    return e;
                 }
             })
         );
 
-        console.log("✅ Especies cargadas con detalles:", especies[0]);
+        especiesDetallesCargados = true;
+        console.log(`✅ Detalles de especies cargados: ${especies.length}`);
         return especies;
     } catch (error) {
-        console.error('Error al obtener especies:', error);
+        console.error('❌ Error al cargar detalles de especies:', error);
+        return especies;
+    }
+}
+
+// =======================
+// 🚗 VEHÍCULOS - LISTA BÁSICA
+// =======================
+async function obtenerVehiculosBasico() {
+    try {
+        const res = await fetch(`${BASE_URL}/vehicles?page=1&limit=100`);
+        const data = await res.json();
+
+        vehiculos = data.results.map(v => ({
+            uid: v.uid,
+            name: v.name,
+            image: `img/vehiculos/${normalizarNombreArchivo(v.name)}.webp`
+        }));
+
+        console.log(`✅ Vehículos (básico): ${vehiculos.length}`);
+        return vehiculos;
+    } catch (error) {
+        console.error('❌ Error al obtener vehículos:', error);
         return [];
     }
 }
 
 // =======================
-// 🚗 VEHÍCULOS
+// 🚗 VEHÍCULOS - CARGAR DETALLES COMPLETOS
 // =======================
-async function obtenerVehiculos() {
-    try {
-        const res = await fetch(`${BASE_URL}/vehicles?page=1&limit=100`);
-        const data = await res.json();
+async function cargarDetallesVehiculos() {
+    if (vehiculosDetallesCargados) {
+        console.log('✅ Detalles de vehículos ya cargados');
+        return vehiculos;
+    }
 
+    console.log('⏳ Cargando detalles de vehículos...');
+    
+    try {
         vehiculos = await Promise.all(
-            data.results.map(async (v) => {
+            vehiculos.map(async (v) => {
                 try {
-                    // Obtener detalles completos de cada vehículo
                     const detailRes = await fetch(`${BASE_URL}/vehicles/${v.uid}`);
                     const detailData = await detailRes.json();
                     const props = detailData.result.properties;
@@ -373,20 +421,36 @@ async function obtenerVehiculos() {
                         consumables: props.consumables
                     };
                 } catch (error) {
-                    console.error(`Error al obtener detalles del vehículo ${v.name}:`, error);
-                    return {
-                        uid: v.uid,
-                        name: v.name,
-                        image: `img/vehiculos/${normalizarNombreArchivo(v.name)}.webp`
-                    };
+                    return v;
                 }
             })
         );
 
-        console.log("✅ Vehículos cargados con detalles:", vehiculos[0]);
+        vehiculosDetallesCargados = true;
+        console.log(`✅ Detalles de vehículos cargados: ${vehiculos.length}`);
         return vehiculos;
     } catch (error) {
-        console.error('Error al obtener vehículos:', error);
+        console.error('❌ Error al cargar detalles de vehículos:', error);
+        return vehiculos;
+    }
+}
+
+// =======================
+// 🎬 PELÍCULAS
+// =======================
+async function obtenerPeliculas() {
+    try {
+        const res = await fetch(`${BASE_URL}/films`);
+        const data = await res.json();
+
+        peliculas = data.result.map((f) => ({
+            ...f,
+            image: `img/films/${normalizarNombreArchivo(f.properties.title)}.webp`
+        }));
+
+        return peliculas;
+    } catch (error) {
+        console.error('❌ Error al obtener películas:', error);
         return [];
     }
 }
@@ -396,14 +460,11 @@ async function obtenerVehiculos() {
 // =======================
 async function obtenerDetallePersonaje(id) {
     try {
-        // Primero buscar en el array cargado
         const personajeEnArray = personajes.find(p => p.uid === id);
         if (personajeEnArray && personajeEnArray.gender) {
-            console.log("✅ Personaje encontrado en array:", personajeEnArray);
             return personajeEnArray;
         }
 
-        // Si no está o no tiene detalles, hacer petición
         const res = await fetch(`${BASE_URL}/people/${id}`);
         const data = await res.json();
         const personaje = data.result.properties;
@@ -433,14 +494,11 @@ async function obtenerDetallePersonaje(id) {
 // =======================
 async function obtenerDetallePlaneta(id) {
     try {
-        // Primero buscar en el array cargado
         const planetaEnArray = planetas.find(p => p.uid === id);
         if (planetaEnArray && planetaEnArray.climate) {
-            console.log("✅ Planeta encontrado en array:", planetaEnArray);
             return planetaEnArray;
         }
 
-        // Si no está o no tiene detalles, hacer petición
         const res = await fetch(`${BASE_URL}/planets/${id}`);
         const data = await res.json();
         const planeta = data.result.properties;
@@ -469,14 +527,11 @@ async function obtenerDetallePlaneta(id) {
 // =======================
 async function obtenerDetalleNave(id) {
     try {
-        // Primero buscar en el array cargado
         const naveEnArray = naves.find(n => n.uid === id);
         if (naveEnArray && naveEnArray.starship_class) {
-            console.log("✅ Nave encontrada en array:", naveEnArray);
             return naveEnArray;
         }
 
-        // Si no está o no tiene detalles, hacer petición
         const res = await fetch(`${BASE_URL}/starships/${id}`);
         const data = await res.json();
         const nave = data.result.properties;
@@ -588,13 +643,23 @@ function esFavorito(uid, tipo) {
     return favoritos.some(f => f.uid === uid && f.tipo === tipo);
 }
 
+// =============================================================================
+// 🔄 FUNCIÓN PARA LIMPIAR CACHÉ Y RECARGAR TODO
+// =============================================================================
+function limpiarCacheYRecargar() {
+    console.log('🧹 Limpiando localStorage...');
+    localStorage.clear();
+    console.log('🔄 Recargando página...');
+    location.reload();
+}
+
+
 // =======================
-// 🚀 Inicialización
+// 🚀 Inicialización - SOLO LISTAS BÁSICAS
 // =======================
 async function inicializarApp() {
     const root = document.getElementById("root");
     
-    // Mostrar pantalla de carga
     root.innerHTML = `
         <div class="loading-screen">
             <div class="loading-spinner"></div>
@@ -606,21 +671,20 @@ async function inicializarApp() {
     console.log("🚀 Iniciando Star Wars Encyclopedia...");
     
     try {
-        // Cargar todos los datos en paralelo
+        // Solo cargar listas básicas (rápido)
         await Promise.all([
             cargarImagenesStarWars(),
-            obtenerPersonajes(),
-            obtenerPlanetas(),
-            obtenerNaves(),
-            obtenerEspecies(),
-            obtenerVehiculos(),
+            obtenerPersonajesBasico(),
+            obtenerPlanetasBasico(),
+            obtenerNavesBasico(),
+            obtenerEspeciesBasico(),
+            obtenerVehiculosBasico(),
             obtenerPeliculas()
         ]);
         
-        console.log("✅ App inicializada");
-        console.log(`📊 Datos cargados: ${personajes.length} personajes, ${planetas.length} planetas, ${naves.length} naves, ${especies.length} especies, ${vehiculos.length} vehículos, ${peliculas.length} películas`);
+        console.log(`📊 Datos básicos: ${personajes.length} personajes, ${planetas.length} planetas, ${naves.length} naves, ${especies.length} especies, ${vehiculos.length} vehículos, ${peliculas.length} películas`);
+        console.log('⚡ Carga inicial completa - Las imágenes se cargarán al entrar a cada sección');
         
-        // Cargar Home después de obtener todos los datos
         Home();
     } catch (error) {
         console.error("❌ Error al inicializar la app:", error);

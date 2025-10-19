@@ -18,6 +18,34 @@
 
     <div id="root"></div>
 
+    <!-- 🔄 FOOTER CON BOTÓN DE RECARGA -->
+    <footer style="text-align: center; padding: 2rem; margin-top: 3rem; border-top: 2px solid #333;">
+        <p style="color: #aaa; margin-bottom: 1rem;">
+            ¿Problemas con las imágenes o datos de la API?
+        </p>
+        <button 
+            onclick="limpiarCacheYRecargar()" 
+            style="
+                background: linear-gradient(145deg, #d32f2f, #f44336);
+                color: white;
+                border: none;
+                padding: 0.8rem 1.5rem;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+            "
+            onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 20px rgba(211, 47, 47, 0.6)';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(211, 47, 47, 0.4)';"
+        >
+            🔄 Limpiar Caché y Recargar Todo
+        </button>
+        <p style="color: #666; font-size: 0.9rem; margin-top: 1.5rem;">
+            Star Wars Encyclopedia © 2025
+        </p>
+    </footer>
 
     <script src="paginas/conexion.js"></script>
     <script src="paginas/home.js"></script>

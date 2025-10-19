@@ -1,5 +1,5 @@
 // =============================================================================
-// 🚀 NAVES - Con filtros avanzados
+// 🚀 NAVES - Con carga perezosa
 // =============================================================================
 
 // 🧩 Generar HTML de lista de naves
@@ -9,7 +9,7 @@ function generarListaNaves(arrayNaves) {
     for (let i = 0; i < arrayNaves.length; i++) {
         const id = arrayNaves[i].uid;
         const nombre = arrayNaves[i].name;
-        const imgWebP = arrayNaves[i].image;
+        const imgWebP = arrayNaves[i].image || 'img/fallback.webp';
 
         listaHTML += `
         <div class="card-nave" onclick="DetalleNave('${id}')">
@@ -30,7 +30,7 @@ function actualizarListaNaves(arrayNaves) {
     }
 }
 
-// 🚀 Página principal de Naves
+// 🚀 Página principal de Naves - CON CARGA PEREZOSA
 async function Naves() {
     const root = document.getElementById("root");
     root.innerHTML = "";
@@ -91,16 +91,20 @@ async function Naves() {
     contenedorLista.className = "grid-container";
     contenedorLista.id = "lista-elementos";
 
-    if (naves.length === 0) {
-        contenedorLista.innerHTML = "<div class='loading'>Cargando naves...</div>";
-        await obtenerNaves();
+    // ⚡ CARGA PEREZOSA: Si no están los detalles, cargarlos ahora
+    if (!navesDetallesCargados) {
+        contenedorLista.innerHTML = "<div class='loading'>⏳ Cargando imágenes y detalles de naves...</div>";
+        root.appendChild(titulo);
+        root.appendChild(buscador);
+        root.appendChild(filtrosContainer);
+        root.appendChild(contenedorLista);
+        
+        await cargarDetallesNaves();
     }
-
-    // DEBUG: Ver qué datos tenemos
-    console.log("🔍 DEBUG Naves:", naves[0]);
 
     contenedorLista.innerHTML = generarListaNaves(naves);
 
+    root.innerHTML = "";
     root.appendChild(titulo);
     root.appendChild(buscador);
     root.appendChild(filtrosContainer);

@@ -1,18 +1,6 @@
 // =============================================================================
-// 🚗 VEHÍCULOS - Sistema con cascada de imágenes
+// 🚗 VEHÍCULOS - Con carga perezosa
 // =============================================================================
-
-// 🔍 Buscar vehículos
-function buscarVehiculos(texto) {
-    if (texto.length >= 3) {
-        const filtrados = vehiculos.filter(v =>
-            v.name.toLowerCase().includes(texto.toLowerCase())
-        );
-        actualizarListaVehiculos(filtrados);
-    } else {
-        actualizarListaVehiculos(vehiculos);
-    }
-}
 
 // 🧩 Generar HTML de lista de vehículos
 function generarListaVehiculos(arrayVehiculos) {
@@ -21,7 +9,6 @@ function generarListaVehiculos(arrayVehiculos) {
     for (let i = 0; i < arrayVehiculos.length; i++) {
         const id = arrayVehiculos[i].uid;
         const nombre = arrayVehiculos[i].name;
-        
         const imgWebP = arrayVehiculos[i].image;
 
         listaHTML += `
@@ -43,7 +30,7 @@ function actualizarListaVehiculos(arrayVehiculos) {
     }
 }
 
-// 🚗 Página principal de Vehículos
+// 🚗 Página principal de Vehículos - CON CARGA PEREZOSA
 async function Vehiculos() {
     const root = document.getElementById("root");
     root.innerHTML = "";
@@ -93,16 +80,20 @@ async function Vehiculos() {
     contenedorLista.className = "grid-container";
     contenedorLista.id = "lista-elementos";
 
-    if (vehiculos.length === 0) {
-        contenedorLista.innerHTML = "<div class='loading'>Cargando vehículos...</div>";
-        await obtenerVehiculos();
+    // ⚡ CARGA PEREZOSA: Si no están los detalles, cargarlos ahora
+    if (!vehiculosDetallesCargados) {
+        contenedorLista.innerHTML = "<div class='loading'>⏳ Cargando detalles de vehículos...</div>";
+        root.appendChild(titulo);
+        root.appendChild(buscador);
+        root.appendChild(filtrosContainer);
+        root.appendChild(contenedorLista);
+        
+        await cargarDetallesVehiculos();
     }
-
-    // DEBUG: Ver qué datos tenemos
-    console.log("🔍 DEBUG Vehículos:", vehiculos[0]);
 
     contenedorLista.innerHTML = generarListaVehiculos(vehiculos);
 
+    root.innerHTML = "";
     root.appendChild(titulo);
     root.appendChild(buscador);
     root.appendChild(filtrosContainer);

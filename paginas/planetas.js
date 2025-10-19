@@ -1,5 +1,5 @@
 // =============================================================================
-// 🪐 PLANETAS - Con filtros avanzados
+// 🪐 PLANETAS - Con carga perezosa
 // =============================================================================
 
 // 🧩 Generar HTML de lista de planetas
@@ -30,7 +30,7 @@ function actualizarListaPlanetas(arrayPlanetas) {
     }
 }
 
-// 🌍 Página principal de Planetas
+// 🌍 Página principal de Planetas - CON CARGA PEREZOSA
 async function Planetas() {
     const root = document.getElementById("root");
     root.innerHTML = "";
@@ -94,16 +94,20 @@ async function Planetas() {
     contenedorLista.className = "grid-container";
     contenedorLista.id = "lista-elementos";
 
-    if (planetas.length === 0) {
-        contenedorLista.innerHTML = "<div class='loading'>Cargando planetas...</div>";
-        await obtenerPlanetas();
+    // ⚡ CARGA PEREZOSA: Si no están los detalles, cargarlos ahora
+    if (!planetasDetallesCargados) {
+        contenedorLista.innerHTML = "<div class='loading'>⏳ Cargando detalles de planetas...</div>";
+        root.appendChild(titulo);
+        root.appendChild(buscador);
+        root.appendChild(filtrosContainer);
+        root.appendChild(contenedorLista);
+        
+        await cargarDetallesPlanetas();
     }
-
-    // DEBUG: Ver qué datos tenemos
-    console.log("🔍 DEBUG Planetas:", planetas[0]);
 
     contenedorLista.innerHTML = generarListaPlanetas(planetas);
 
+    root.innerHTML = "";
     root.appendChild(titulo);
     root.appendChild(buscador);
     root.appendChild(filtrosContainer);
@@ -122,14 +126,7 @@ function aplicarFiltrosPlanetas() {
     const terreno = document.getElementById("filtro-terreno").value.toLowerCase();
     const poblacion = document.getElementById("filtro-poblacion").value;
 
-    console.log("🔍 Filtrando planetas con:", { clima, terreno, poblacion });
-
     const filtrados = planetas.filter(p => {
-        // DEBUG
-        if (!p.climate && !clima) {
-            console.log("⚠️ Planeta sin propiedad climate:", p.name, p);
-        }
-
         const cumpleTexto = p.name.toLowerCase().includes(textoBusqueda);
         const cumpleClima = !clima || (p.climate && p.climate.toLowerCase().includes(clima));
         const cumpleTerr = !terreno || (p.terrain && p.terrain.toLowerCase().includes(terreno));
@@ -153,7 +150,6 @@ function aplicarFiltrosPlanetas() {
         return cumpleTexto && cumpleClima && cumpleTerr && cumplePoblacion;
     });
 
-    console.log(`✅ Filtrados: ${filtrados.length} de ${planetas.length}`);
     actualizarListaPlanetas(filtrados);
 }
 

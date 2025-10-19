@@ -1,5 +1,5 @@
 // =============================================================================
-// 🧍‍♂️ PERSONAJES - Con filtros avanzados
+// 🧍‍♂️ PERSONAJES - Con carga perezosa
 // =============================================================================
 
 // 🧱 Generar HTML de lista de personajes
@@ -9,7 +9,7 @@ function generarListaPersonajes(arrayPersonajes) {
     for (let i = 0; i < arrayPersonajes.length; i++) {
         const id = arrayPersonajes[i].uid;
         const nombre = arrayPersonajes[i].name;
-        const imgWebP = arrayPersonajes[i].image;
+        const imgWebP = arrayPersonajes[i].image || 'img/fallback.webp';
 
         listaHTML += `
         <div class="card-personaje" onclick="DetallePersonaje('${id}')">
@@ -30,7 +30,7 @@ function actualizarListaPersonajes(arrayPersonajes) {
     }
 }
 
-// 🧍 Página principal de Personajes
+// 🧍 Página principal de Personajes - CON CARGA PEREZOSA
 async function Personajes() {
     const root = document.getElementById("root");
     root.innerHTML = "";
@@ -92,13 +92,20 @@ async function Personajes() {
     contenedorLista.className = "grid-container";
     contenedorLista.id = "lista-elementos";
 
-    if (personajes.length === 0) {
-        contenedorLista.innerHTML = "<div class='loading'>Cargando personajes...</div>";
-        await obtenerPersonajes();
+    // ⚡ CARGA PEREZOSA: Si no están los detalles, cargarlos ahora
+    if (!personajesDetallesCargados) {
+        contenedorLista.innerHTML = "<div class='loading'>⏳ Cargando imágenes de personajes...</div>";
+        root.appendChild(titulo);
+        root.appendChild(buscador);
+        root.appendChild(filtrosContainer);
+        root.appendChild(contenedorLista);
+        
+        await cargarDetallesPersonajes();
     }
 
     contenedorLista.innerHTML = generarListaPersonajes(personajes);
 
+    root.innerHTML = "";
     root.appendChild(titulo);
     root.appendChild(buscador);
     root.appendChild(filtrosContainer);

@@ -1,5 +1,5 @@
 // =============================================================================
-// 🏠 HOME - Página de inicio con dashboard
+// 🏠 HOME - Página de inicio SIN contadores
 // =============================================================================
 
 function Home() {
@@ -22,7 +22,6 @@ function Home() {
                 </div>
                 <h3>Personajes</h3>
                 <p>Héroes, villanos y leyendas</p>
-                <span class="home-card-count">${personajes.length || 0}</span>
             </div>
 
             <div class="home-card" onclick="Naves()">
@@ -31,7 +30,6 @@ function Home() {
                 </div>
                 <h3>Naves</h3>
                 <p>Cazas y naves legendarias</p>
-                <span class="home-card-count">${naves.length || 0}</span>
             </div>
 
             <div class="home-card" onclick="Planetas()">
@@ -40,7 +38,6 @@ function Home() {
                 </div>
                 <h3>Planetas</h3>
                 <p>Mundos de la galaxia</p>
-                <span class="home-card-count">${planetas.length || 0}</span>
             </div>
 
             <div class="home-card" onclick="Vehiculos()">
@@ -49,7 +46,6 @@ function Home() {
                 </div>
                 <h3>Vehículos</h3>
                 <p>Transporte terrestre</p>
-                <span class="home-card-count">${vehiculos.length || 0}</span>
             </div>
 
             <div class="home-card" onclick="Especies()">
@@ -58,7 +54,6 @@ function Home() {
                 </div>
                 <h3>Especies</h3>
                 <p>Razas de la galaxia</p>
-                <span class="home-card-count">${especies.length || 0}</span>
             </div>
 
             <div class="home-card" onclick="Favoritos()">
@@ -67,7 +62,6 @@ function Home() {
                 </div>
                 <h3>Favoritos</h3>
                 <p>Tus elementos guardados</p>
-                <span class="home-card-count">${favoritos.length || 0}</span>
             </div>
         </div>
 

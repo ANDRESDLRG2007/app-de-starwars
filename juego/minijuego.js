@@ -1,5 +1,5 @@
 // =============================================================================
-// 🎮 MINIJUEGO - Adivina el personaje de Star Wars (Tipo Pokedle)
+// 🎮 MINIJUEGO - Adivina el personaje de Star Wars (con carga perezosa)
 // =============================================================================
 
 let juegoActivo = {
@@ -12,15 +12,15 @@ let juegoActivo = {
 
 // 🎲 Iniciar nuevo juego
 async function iniciarNuevoJuego() {
-    // Asegurarse de que los personajes estén cargados
-    if (personajes.length === 0) {
-        console.log("⏳ Cargando personajes para el juego...");
-        await obtenerPersonajes();
+    // ⚡ CARGA PEREZOSA: Cargar detalles de personajes si no están cargados
+    if (!personajesDetallesCargados) {
+        console.log("⏳ Cargando personajes completos para el juego...");
+        await cargarDetallesPersonajes();
     }
 
     // Seleccionar personaje aleatorio que tenga todas las propiedades
     const personajesValidos = personajes.filter(p => 
-        p.gender && p.height && p.eye_color && p.hair_color && p.mass
+        p.gender && p.height && p.eye_color && p.hair_color && p.mass && p.image
     );
     
     if (personajesValidos.length === 0) {
@@ -35,8 +35,7 @@ async function iniciarNuevoJuego() {
     juegoActivo.ganado = false;
     juegoActivo.perdido = false;
     
-    console.log("🎯 Personaje secreto:", juegoActivo.personajeSecreto.name); // DEBUG - Quitar en producción
-    console.log("📊 Total personajes válidos:", personajesValidos.length);
+    console.log("🎯 Personaje secreto:", juegoActivo.personajeSecreto.name);
     
     Minijuego();
 }
@@ -46,10 +45,10 @@ async function Minijuego() {
     const root = document.getElementById("root");
     root.innerHTML = "";
 
-    // Si no hay personajes cargados, cargarlos primero
-    if (!personajes || personajes.length === 0) {
-        root.innerHTML = "<div class='loading'>Cargando datos del juego...</div>";
-        await obtenerPersonajes();
+    // ⚡ CARGA PEREZOSA: Si no hay personajes cargados con detalles, cargarlos
+    if (!personajesDetallesCargados || personajes.length === 0 || !personajes[0].image) {
+        root.innerHTML = "<div class='loading'>⏳ Cargando personajes para el juego...</div>";
+        await cargarDetallesPersonajes();
         
         // Verificar que se hayan cargado correctamente
         if (!personajes || personajes.length === 0) {
@@ -190,7 +189,7 @@ function handleBusqueda(e) {
     
     const coincidencias = personajes.filter(p => 
         p.name.toLowerCase().includes(texto) && 
-        p.gender && p.height && p.eye_color
+        p.gender && p.height && p.eye_color && p.image
     ).slice(0, 8);
     
     if (coincidencias.length === 0) {

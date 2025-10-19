@@ -1,18 +1,6 @@
 // =============================================================================
-// 👽 ESPECIES - Sistema con cascada de imágenes
+// 👽 ESPECIES - Con carga perezosa
 // =============================================================================
-
-// 🔍 Buscar especies
-function buscarEspecies(texto) {
-    if (texto.length >= 3) {
-        const filtrados = especies.filter(e =>
-            e.name.toLowerCase().includes(texto.toLowerCase())
-        );
-        actualizarListaEspecies(filtrados);
-    } else {
-        actualizarListaEspecies(especies);
-    }
-}
 
 // 🧩 Generar HTML de lista de especies
 function generarListaEspecies(arrayEspecies) {
@@ -21,7 +9,6 @@ function generarListaEspecies(arrayEspecies) {
     for (let i = 0; i < arrayEspecies.length; i++) {
         const id = arrayEspecies[i].uid;
         const nombre = arrayEspecies[i].name;
-        
         const imgWebP = arrayEspecies[i].image;
 
         listaHTML += `
@@ -43,7 +30,7 @@ function actualizarListaEspecies(arrayEspecies) {
     }
 }
 
-// 👽 Página principal de Especies
+// 👽 Página principal de Especies - CON CARGA PEREZOSA
 async function Especies() {
     const root = document.getElementById("root");
     root.innerHTML = "";
@@ -91,13 +78,20 @@ async function Especies() {
     contenedorLista.className = "grid-container";
     contenedorLista.id = "lista-elementos";
 
-    if (especies.length === 0) {
-        contenedorLista.innerHTML = "<div class='loading'>Cargando especies...</div>";
-        await obtenerEspecies();
+    // ⚡ CARGA PEREZOSA: Si no están los detalles, cargarlos ahora
+    if (!especiesDetallesCargados) {
+        contenedorLista.innerHTML = "<div class='loading'>⏳ Cargando detalles de especies...</div>";
+        root.appendChild(titulo);
+        root.appendChild(buscador);
+        root.appendChild(filtrosContainer);
+        root.appendChild(contenedorLista);
+        
+        await cargarDetallesEspecies();
     }
 
     contenedorLista.innerHTML = generarListaEspecies(especies);
 
+    root.innerHTML = "";
     root.appendChild(titulo);
     root.appendChild(buscador);
     root.appendChild(filtrosContainer);
