@@ -37,7 +37,7 @@ async function Personajes() {
 
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "🧍‍♂️ Personajes";
+    titulo.textContent = "Personajes";
 
     const buscador = document.createElement("input");
     buscador.className = "buscador";
@@ -117,18 +117,47 @@ async function Personajes() {
     document.getElementById("filtro-altura").addEventListener("change", aplicarFiltrosPersonajes);
 }
 
-// Aplicar filtros de personajes
 function aplicarFiltrosPersonajes() {
     const textoBusqueda = document.querySelector('.buscador').value.toLowerCase();
     const genero = document.getElementById("filtro-genero").value.toLowerCase();
     const ojos = document.getElementById("filtro-ojos").value.toLowerCase();
     const altura = document.getElementById("filtro-altura").value;
 
+    const root = document.getElementById("root");
+    const lista = document.getElementById("lista-elementos");
+
+    // 🌟 Easter Egg #1: George Lucas
+    if (textoBusqueda.includes("george lucas")) {
+        root.innerHTML = `
+            <div class="easter-egg">
+                <h2>✨ George Lucas ✨</h2>
+                <p>“The Force will be with you. Always.”</p>
+                <img src="https://img.maspormas.com/2016/05/George-Lucas-ok.jpg" alt="George Lucas" class="easter-img">
+                <button onclick="Personajes()">Volver a la galaxia</button>
+            </div>
+        `;
+        return; // detenemos el resto del filtrado
+    }
+// 🌟 Easter Egg #2: "I am your father"
+if (textoBusqueda.includes("father") || textoBusqueda.includes("padre")) {
+    root.innerHTML = `
+        <div class="easter-egg">
+            <p>“No... I am your father.”</p>
+            <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnpxazZwb2wzeWwwOWV4a3RzN3AzYWpwNW94YnM0bGg1NnRpemxqdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPpf0zTqRASyzTi/giphy.gif" 
+                 alt="Darth Vader" class="easter-img">
+            <button onclick="Personajes()">Volver a la galaxia</button>
+        </div>
+    `;
+    return; // detenemos el resto del filtrado
+}
+
+
+    // --- Filtros normales (como ya tenías)
     const filtrados = personajes.filter(p => {
         const cumpleTexto = p.name.toLowerCase().includes(textoBusqueda);
         const cumpleGenero = !genero || p.gender?.toLowerCase() === genero;
         const cumpleOjos = !ojos || p.eye_color?.toLowerCase().includes(ojos);
-        
+
         let cumpleAltura = true;
         if (altura) {
             const h = parseInt(p.height) || 0;
@@ -142,6 +171,7 @@ function aplicarFiltrosPersonajes() {
 
     actualizarListaPersonajes(filtrados);
 }
+
 
 // Limpiar filtros de personajes
 function limpiarFiltrosPersonajes() {

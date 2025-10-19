@@ -37,7 +37,7 @@ async function Vehiculos() {
 
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "🚗 Vehículos";
+    titulo.textContent = "Vehículos";
 
     const buscador = document.createElement("input");
     buscador.className = "buscador";

@@ -36,7 +36,7 @@ async function Peliculas() {
 
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "🎬 Películas";
+    titulo.textContent = "Películas";
 
     const descripcion = document.createElement("p");
     descripcion.style.textAlign = "center";

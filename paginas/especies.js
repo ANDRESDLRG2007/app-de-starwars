@@ -37,7 +37,7 @@ async function Especies() {
 
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "👽 Especies";
+    titulo.textContent = "Especies";
 
     const buscador = document.createElement("input");
     buscador.className = "buscador";

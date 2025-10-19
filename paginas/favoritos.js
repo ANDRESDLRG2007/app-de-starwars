@@ -105,7 +105,7 @@ function Favoritos() {
     
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "⭐ Mis Favoritos";
+    titulo.textContent = "Mis Favoritos";
     
     const contador = document.createElement("div");
     contador.className = "contador-favoritos";

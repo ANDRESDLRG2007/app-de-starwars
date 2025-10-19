@@ -37,7 +37,7 @@ async function Naves() {
 
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "🚀 Naves Espaciales";
+    titulo.textContent = "Naves Espaciales";
 
     const buscador = document.createElement("input");
     buscador.className = "buscador";

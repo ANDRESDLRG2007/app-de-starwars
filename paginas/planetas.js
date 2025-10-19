@@ -37,7 +37,7 @@ async function Planetas() {
 
     const titulo = document.createElement("h1");
     titulo.className = "titulo-seccion";
-    titulo.textContent = "🌍 Planetas";
+    titulo.textContent = "Planetas";
 
     const buscador = document.createElement("input");
     buscador.className = "buscador";
