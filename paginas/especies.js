@@ -57,8 +57,35 @@ async function Especies() {
     buscador.type = "text";
     buscador.placeholder = "Buscar especie (Wookiee, Droid, Ewok...)";
     buscador.addEventListener("input", () => {
-        buscarEspecies(buscador.value);
+        aplicarFiltrosEspecies();
     });
+
+    // Filtros
+    const filtrosContainer = document.createElement("div");
+    filtrosContainer.className = "filtros-container";
+    filtrosContainer.innerHTML = `
+        <div class="filtro-grupo filtro-especie">
+            <label>🧬 Clasificación:</label>
+            <select id="filtro-clasificacion">
+                <option value="">Todas</option>
+                <option value="mammal">Mamífero</option>
+                <option value="reptile">Reptil</option>
+                <option value="artificial">Artificial</option>
+                <option value="sentient">Consciente</option>
+            </select>
+        </div>
+        
+        <div class="filtro-grupo filtro-especie">
+            <label>🧠 Designación:</label>
+            <select id="filtro-designacion">
+                <option value="">Todas</option>
+                <option value="sentient">Sensible</option>
+                <option value="reptilian">Reptiliana</option>
+            </select>
+        </div>
+        
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosEspecies()">🔄 Limpiar filtros</button>
+    `;
 
     const contenedorLista = document.createElement("div");
     contenedorLista.className = "grid-container";
@@ -73,7 +100,37 @@ async function Especies() {
 
     root.appendChild(titulo);
     root.appendChild(buscador);
+    root.appendChild(filtrosContainer);
     root.appendChild(contenedorLista);
+
+    // Event listeners para filtros
+    document.getElementById("filtro-clasificacion").addEventListener("change", aplicarFiltrosEspecies);
+    document.getElementById("filtro-designacion").addEventListener("change", aplicarFiltrosEspecies);
+}
+
+// Aplicar filtros de especies
+function aplicarFiltrosEspecies() {
+    const textoBusqueda = document.querySelector('.buscador').value.toLowerCase();
+    const clasificacion = document.getElementById("filtro-clasificacion").value.toLowerCase();
+    const designacion = document.getElementById("filtro-designacion").value.toLowerCase();
+
+    const filtradas = especies.filter(e => {
+        const cumpleTexto = e.name.toLowerCase().includes(textoBusqueda);
+        const cumpleClasificacion = !clasificacion || e.classification?.toLowerCase().includes(clasificacion);
+        const cumpleDesignacion = !designacion || e.designation?.toLowerCase().includes(designacion);
+
+        return cumpleTexto && cumpleClasificacion && cumpleDesignacion;
+    });
+
+    actualizarListaEspecies(filtradas);
+}
+
+// Limpiar filtros de especies
+function limpiarFiltrosEspecies() {
+    document.querySelector('.buscador').value = '';
+    document.getElementById("filtro-clasificacion").value = '';
+    document.getElementById("filtro-designacion").value = '';
+    aplicarFiltrosEspecies();
 }
 
 // 🧭 Detalle de especie

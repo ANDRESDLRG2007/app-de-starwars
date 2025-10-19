@@ -1,35 +1,15 @@
 // =============================================================================
-// 🧍‍♂️ PERSONAJES - Sistema con cascada de imágenes
+// 🧍‍♂️ PERSONAJES - Con filtros avanzados
 // =============================================================================
 
-// 🔍 Buscador de personajes
-function buscarPersonajes(texto) {
-    if (texto.length >= 3) {
-        const filtrados = personajes.filter(p =>
-            p.name.toLowerCase().includes(texto.toLowerCase())
-        );
-        actualizarListaPersonajes(filtrados);
-    } else {
-        actualizarListaPersonajes(personajes);
-    }
-}
-
-// 🧱 Generar HTML de lista de personajes con cascada
+// 🧱 Generar HTML de lista de personajes
 function generarListaPersonajes(arrayPersonajes) {
     let listaHTML = "";
 
     for (let i = 0; i < arrayPersonajes.length; i++) {
         const id = arrayPersonajes[i].uid;
         const nombre = arrayPersonajes[i].name;
-        
-        // Obtener todas las URLs de imagen
         const imgWebP = arrayPersonajes[i].image;
-        const imgJPG = arrayPersonajes[i].imageJPG;
-        const imgGitHub = arrayPersonajes[i].imageGitHub;
-        const imgFallback = arrayPersonajes[i].imageFallback;
-        
-        // Construir atributo onerror con cascada completa
-       // const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-personaje" onclick="DetallePersonaje('${id}')">
@@ -64,8 +44,49 @@ async function Personajes() {
     buscador.type = "text";
     buscador.placeholder = "Buscar personaje (Luke, Vader, Leia...)";
     buscador.addEventListener("input", () => {
-        buscarPersonajes(buscador.value);
+        aplicarFiltrosPersonajes();
     });
+
+    // Filtros
+    const filtrosContainer = document.createElement("div");
+    filtrosContainer.className = "filtros-container";
+    filtrosContainer.innerHTML = `
+        <div class="filtro-grupo filtro-personaje">
+            <label>⚧️ Género:</label>
+            <select id="filtro-genero">
+                <option value="">Todos</option>
+                <option value="male">Masculino</option>
+                <option value="female">Femenino</option>
+                <option value="n/a">N/A</option>
+                <option value="hermaphrodite">Hermafrodita</option>
+            </select>
+        </div>
+        
+        <div class="filtro-grupo filtro-personaje">
+            <label>👁️ Color de ojos:</label>
+            <select id="filtro-ojos">
+                <option value="">Todos</option>
+                <option value="blue">Azul</option>
+                <option value="brown">Marrón</option>
+                <option value="yellow">Amarillo</option>
+                <option value="red">Rojo</option>
+                <option value="black">Negro</option>
+                <option value="unknown">Desconocido</option>
+            </select>
+        </div>
+        
+        <div class="filtro-grupo filtro-personaje">
+            <label>📏 Altura:</label>
+            <select id="filtro-altura">
+                <option value="">Todas</option>
+                <option value="bajo">Bajo (&lt;150cm)</option>
+                <option value="medio">Medio (150-180cm)</option>
+                <option value="alto">Alto (&gt;180cm)</option>
+            </select>
+        </div>
+        
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosPersonajes()">🔄 Limpiar filtros</button>
+    `;
 
     const contenedorLista = document.createElement("div");
     contenedorLista.className = "grid-container";
@@ -80,7 +101,48 @@ async function Personajes() {
 
     root.appendChild(titulo);
     root.appendChild(buscador);
+    root.appendChild(filtrosContainer);
     root.appendChild(contenedorLista);
+
+    // Event listeners para filtros
+    document.getElementById("filtro-genero").addEventListener("change", aplicarFiltrosPersonajes);
+    document.getElementById("filtro-ojos").addEventListener("change", aplicarFiltrosPersonajes);
+    document.getElementById("filtro-altura").addEventListener("change", aplicarFiltrosPersonajes);
+}
+
+// Aplicar filtros de personajes
+function aplicarFiltrosPersonajes() {
+    const textoBusqueda = document.querySelector('.buscador').value.toLowerCase();
+    const genero = document.getElementById("filtro-genero").value.toLowerCase();
+    const ojos = document.getElementById("filtro-ojos").value.toLowerCase();
+    const altura = document.getElementById("filtro-altura").value;
+
+    const filtrados = personajes.filter(p => {
+        const cumpleTexto = p.name.toLowerCase().includes(textoBusqueda);
+        const cumpleGenero = !genero || p.gender?.toLowerCase() === genero;
+        const cumpleOjos = !ojos || p.eye_color?.toLowerCase().includes(ojos);
+        
+        let cumpleAltura = true;
+        if (altura) {
+            const h = parseInt(p.height) || 0;
+            if (altura === "bajo") cumpleAltura = h < 150 && h > 0;
+            else if (altura === "medio") cumpleAltura = h >= 150 && h <= 180;
+            else if (altura === "alto") cumpleAltura = h > 180;
+        }
+
+        return cumpleTexto && cumpleGenero && cumpleOjos && cumpleAltura;
+    });
+
+    actualizarListaPersonajes(filtrados);
+}
+
+// Limpiar filtros de personajes
+function limpiarFiltrosPersonajes() {
+    document.querySelector('.buscador').value = '';
+    document.getElementById("filtro-genero").value = '';
+    document.getElementById("filtro-ojos").value = '';
+    document.getElementById("filtro-altura").value = '';
+    aplicarFiltrosPersonajes();
 }
 
 // 💫 Detalle de personaje
@@ -96,9 +158,6 @@ async function DetallePersonaje(id) {
     }
 
     const imgLocal = data.image;
-    const imgGitHub = data.imageGitHub;
-    const imgFallback = data.imageFallback;
-    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
     const isFav = esFavorito(id, 'personaje');
 
     const detalle = document.createElement("div");
@@ -107,7 +166,7 @@ async function DetallePersonaje(id) {
         <button class="btn-volver" onclick="Personajes()">← Volver</button>
 
         <div class="detalle-header">
-             <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
+             <img src="${imgLocal}" alt="${data.name}" onerror="this.src='img/fallback.webp'">
             <div class="detalle-info">
                 <h1>${data.name}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}"
@@ -146,5 +205,9 @@ function toggleFavorito(uid, tipo, nombre) {
         DetallePlaneta(uid);
     } else if (tipo === 'nave') {
         DetalleNave(uid);
+    } else if (tipo === 'especie') {
+        DetalleEspecie(uid);
+    } else if (tipo === 'vehiculo') {
+        DetalleVehiculo(uid);
     }
 }

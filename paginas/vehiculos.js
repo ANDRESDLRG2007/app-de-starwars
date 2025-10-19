@@ -57,8 +57,37 @@ async function Vehiculos() {
     buscador.type = "text";
     buscador.placeholder = "Buscar vehículo (Speeder, AT-AT, Sandcrawler...)";
     buscador.addEventListener("input", () => {
-        buscarVehiculos(buscador.value);
+        aplicarFiltrosVehiculos();
     });
+
+    // Filtros
+    const filtrosContainer = document.createElement("div");
+    filtrosContainer.className = "filtros-container";
+    filtrosContainer.innerHTML = `
+        <div class="filtro-grupo filtro-vehiculo">
+            <label>🚙 Clase:</label>
+            <select id="filtro-clase-vehiculo">
+                <option value="">Todas</option>
+                <option value="wheeled">Con ruedas</option>
+                <option value="repulsorcraft">Repulsores</option>
+                <option value="walker">Caminante</option>
+                <option value="speeder">Speeder</option>
+            </select>
+        </div>
+        
+        <div class="filtro-grupo filtro-vehiculo">
+            <label>👥 Tripulación:</label>
+            <select id="filtro-tripulacion">
+                <option value="">Todas</option>
+                <option value="1">1 persona</option>
+                <option value="2">2 personas</option>
+                <option value="3-5">3-5 personas</option>
+                <option value="6+">6+ personas</option>
+            </select>
+        </div>
+        
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosVehiculos()">🔄 Limpiar filtros</button>
+    `;
 
     const contenedorLista = document.createElement("div");
     contenedorLista.className = "grid-container";
@@ -69,11 +98,52 @@ async function Vehiculos() {
         await obtenerVehiculos();
     }
 
+    // DEBUG: Ver qué datos tenemos
+    console.log("🔍 DEBUG Vehículos:", vehiculos[0]);
+
     contenedorLista.innerHTML = generarListaVehiculos(vehiculos);
 
     root.appendChild(titulo);
     root.appendChild(buscador);
+    root.appendChild(filtrosContainer);
     root.appendChild(contenedorLista);
+
+    // Event listeners para filtros
+    document.getElementById("filtro-clase-vehiculo").addEventListener("change", aplicarFiltrosVehiculos);
+    document.getElementById("filtro-tripulacion").addEventListener("change", aplicarFiltrosVehiculos);
+}
+
+// Aplicar filtros de vehículos
+function aplicarFiltrosVehiculos() {
+    const textoBusqueda = document.querySelector('.buscador').value.toLowerCase();
+    const clase = document.getElementById("filtro-clase-vehiculo").value.toLowerCase();
+    const tripulacion = document.getElementById("filtro-tripulacion").value;
+
+    const filtrados = vehiculos.filter(v => {
+        const cumpleTexto = v.name.toLowerCase().includes(textoBusqueda);
+        const cumpleClase = !clase || v.vehicle_class?.toLowerCase().includes(clase);
+        
+        let cumpleTripulacion = true;
+        if (tripulacion) {
+            const crew = parseInt(v.crew) || 0;
+            if (tripulacion === "1") cumpleTripulacion = crew === 1;
+            else if (tripulacion === "2") cumpleTripulacion = crew === 2;
+            else if (tripulacion === "3-5") cumpleTripulacion = crew >= 3 && crew <= 5;
+            else if (tripulacion === "6+") cumpleTripulacion = crew >= 6;
+        }
+
+        return cumpleTexto && cumpleClase && cumpleTripulacion;
+    });
+
+    actualizarListaVehiculos(filtrados);
+}
+
+// Limpiar filtros de vehículos
+function limpiarFiltrosVehiculos() {
+    document.querySelector('.buscador').value = '';
+    document.getElementById("filtro-clase-vehiculo").value = '';
+    document.getElementById("filtro-tripulacion").value = '';
+    aplicarFiltrosVehiculos();
 }
 
 // 🧭 Detalle de vehículo

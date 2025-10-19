@@ -1,32 +1,15 @@
 // =============================================================================
-// 🪐 PLANETAS - Sistema con cascada de imágenes
+// 🪐 PLANETAS - Con filtros avanzados
 // =============================================================================
 
-// 🔍 Buscar planetas
-function buscarPlanetas(texto) {
-    if (texto.length >= 3) {
-        const filtrados = planetas.filter(p =>
-            p.name.toLowerCase().includes(texto.toLowerCase())
-        );
-        actualizarListaPlanetas(filtrados);
-    } else {
-        actualizarListaPlanetas(planetas);
-    }
-}
-
-// 🧩 Generar HTML de lista de planetas con cascada
+// 🧩 Generar HTML de lista de planetas
 function generarListaPlanetas(arrayPlanetas) {
     let listaHTML = "";
 
     for (let i = 0; i < arrayPlanetas.length; i++) {
         const id = arrayPlanetas[i].uid;
         const nombre = arrayPlanetas[i].name;
-        
         const imgWebP = arrayPlanetas[i].image;
-        const imgJPG = arrayPlanetas[i].imageJPG;
-        const imgGitHub = arrayPlanetas[i].imageGitHub;
-        const imgFallback = arrayPlanetas[i].imageFallback;
-       // const attrOnerror = generarAtributoOnerror(imgJPG, imgGitHub, imgFallback);
 
         listaHTML += `
         <div class="card-planeta" onclick="DetallePlaneta('${id}')">
@@ -61,8 +44,51 @@ async function Planetas() {
     buscador.type = "text";
     buscador.placeholder = "Buscar planeta (Tatooine, Hoth, Endor...)";
     buscador.addEventListener("input", () => {
-        buscarPlanetas(buscador.value);
+        aplicarFiltrosPlanetas();
     });
+
+    // Filtros
+    const filtrosContainer = document.createElement("div");
+    filtrosContainer.className = "filtros-container";
+    filtrosContainer.innerHTML = `
+        <div class="filtro-grupo filtro-planeta">
+            <label>🌡️ Clima:</label>
+            <select id="filtro-clima">
+                <option value="">Todos</option>
+                <option value="arid">Árido</option>
+                <option value="temperate">Templado</option>
+                <option value="frozen">Helado</option>
+                <option value="tropical">Tropical</option>
+                <option value="murky">Turbio</option>
+            </select>
+        </div>
+        
+        <div class="filtro-grupo filtro-planeta">
+            <label>🏔️ Terreno:</label>
+            <select id="filtro-terreno">
+                <option value="">Todos</option>
+                <option value="desert">Desierto</option>
+                <option value="grasslands">Praderas</option>
+                <option value="mountains">Montañas</option>
+                <option value="jungle">Jungla</option>
+                <option value="forests">Bosques</option>
+                <option value="ocean">Océano</option>
+            </select>
+        </div>
+        
+        <div class="filtro-grupo filtro-planeta">
+            <label>👥 Población:</label>
+            <select id="filtro-poblacion">
+                <option value="">Todas</option>
+                <option value="deshabitado">Deshabitado</option>
+                <option value="bajo">Baja (&lt;1M)</option>
+                <option value="medio">Media (1M-1B)</option>
+                <option value="alto">Alta (&gt;1B)</option>
+            </select>
+        </div>
+        
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosPlanetas()">🔄 Limpiar filtros</button>
+    `;
 
     const contenedorLista = document.createElement("div");
     contenedorLista.className = "grid-container";
@@ -73,11 +99,71 @@ async function Planetas() {
         await obtenerPlanetas();
     }
 
+    // DEBUG: Ver qué datos tenemos
+    console.log("🔍 DEBUG Planetas:", planetas[0]);
+
     contenedorLista.innerHTML = generarListaPlanetas(planetas);
 
     root.appendChild(titulo);
     root.appendChild(buscador);
+    root.appendChild(filtrosContainer);
     root.appendChild(contenedorLista);
+
+    // Event listeners para filtros
+    document.getElementById("filtro-clima").addEventListener("change", aplicarFiltrosPlanetas);
+    document.getElementById("filtro-terreno").addEventListener("change", aplicarFiltrosPlanetas);
+    document.getElementById("filtro-poblacion").addEventListener("change", aplicarFiltrosPlanetas);
+}
+
+// Aplicar filtros de planetas
+function aplicarFiltrosPlanetas() {
+    const textoBusqueda = document.querySelector('.buscador').value.toLowerCase();
+    const clima = document.getElementById("filtro-clima").value.toLowerCase();
+    const terreno = document.getElementById("filtro-terreno").value.toLowerCase();
+    const poblacion = document.getElementById("filtro-poblacion").value;
+
+    console.log("🔍 Filtrando planetas con:", { clima, terreno, poblacion });
+
+    const filtrados = planetas.filter(p => {
+        // DEBUG
+        if (!p.climate && !clima) {
+            console.log("⚠️ Planeta sin propiedad climate:", p.name, p);
+        }
+
+        const cumpleTexto = p.name.toLowerCase().includes(textoBusqueda);
+        const cumpleClima = !clima || (p.climate && p.climate.toLowerCase().includes(clima));
+        const cumpleTerr = !terreno || (p.terrain && p.terrain.toLowerCase().includes(terreno));
+        
+        let cumplePoblacion = true;
+        if (poblacion) {
+            const popStr = p.population ? p.population.toString().replace(/,/g, '') : "0";
+            const pop = parseInt(popStr) || 0;
+            
+            if (poblacion === "deshabitado") {
+                cumplePoblacion = pop === 0 || p.population === "unknown" || p.population === "0";
+            } else if (poblacion === "bajo") {
+                cumplePoblacion = pop > 0 && pop < 1000000;
+            } else if (poblacion === "medio") {
+                cumplePoblacion = pop >= 1000000 && pop <= 1000000000;
+            } else if (poblacion === "alto") {
+                cumplePoblacion = pop > 1000000000;
+            }
+        }
+
+        return cumpleTexto && cumpleClima && cumpleTerr && cumplePoblacion;
+    });
+
+    console.log(`✅ Filtrados: ${filtrados.length} de ${planetas.length}`);
+    actualizarListaPlanetas(filtrados);
+}
+
+// Limpiar filtros de planetas
+function limpiarFiltrosPlanetas() {
+    document.querySelector('.buscador').value = '';
+    document.getElementById("filtro-clima").value = '';
+    document.getElementById("filtro-terreno").value = '';
+    document.getElementById("filtro-poblacion").value = '';
+    aplicarFiltrosPlanetas();
 }
 
 // 🧭 Detalle de planeta
@@ -93,9 +179,6 @@ async function DetallePlaneta(id) {
     }
 
     const imgLocal = data.image;
-    const imgGitHub = data.imageGitHub;
-    const imgFallback = data.imageFallback;
-    const attrOnerror = generarAtributoOnerror(imgGitHub, imgFallback);
     const isFav = esFavorito(id, 'planeta');
 
     const detalle = document.createElement("div");
@@ -104,7 +187,7 @@ async function DetallePlaneta(id) {
         <button class="btn-volver" onclick="Planetas()">← Volver</button>
 
         <div class="detalle-header">
-            <img src="${imgLocal}" alt="${data.name}" ${attrOnerror}>
+            <img src="${imgLocal}" alt="${data.name}" onerror="this.src='img/fallback.webp'">
             <div class="detalle-info">
                 <h1>${data.name}</h1>
                 <button class="btn-favorito ${isFav ? 'activo' : ''}" 

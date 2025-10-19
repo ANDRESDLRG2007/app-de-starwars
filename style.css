@@ -964,6 +964,167 @@ nav button:hover {
 }
 
 /* =============================================================================
+   🎯 FILTROS - Estilos con colores por sección
+   ============================================================================= */
+.filtros-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    background: linear-gradient(145deg, #1a1a1a, #252525);
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 180px;
+}
+
+.filtro-grupo label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.filtro-grupo select {
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: #2d2d2d;
+    color: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.filtro-grupo select:hover {
+    background: #3a3a3a;
+}
+
+.filtro-grupo select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(255, 232, 31, 0.3);
+}
+
+/* 🧍‍♂️ Filtros de Personajes - Azul */
+.filtro-personaje label {
+    color: #64b5f6;
+}
+
+.filtro-personaje select {
+    border-color: #42a5f5;
+}
+
+.filtro-personaje select:focus {
+    border-color: #64b5f6;
+    box-shadow: 0 0 10px rgba(100, 181, 246, 0.4);
+}
+
+/* 🌍 Filtros de Planetas - Verde */
+.filtro-planeta label {
+    color: #81c784;
+}
+
+.filtro-planeta select {
+    border-color: #66bb6a;
+}
+
+.filtro-planeta select:focus {
+    border-color: #81c784;
+    box-shadow: 0 0 10px rgba(129, 199, 132, 0.4);
+}
+
+/* 🚀 Filtros de Naves - Naranja */
+.filtro-nave label {
+    color: #ff9800;
+}
+
+.filtro-nave select {
+    border-color: #fb8c00;
+}
+
+.filtro-nave select:focus {
+    border-color: #ff9800;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.4);
+}
+
+/* 👽 Filtros de Especies - Púrpura */
+.filtro-especie label {
+    color: #ba68c8;
+}
+
+.filtro-especie select {
+    border-color: #ab47bc;
+}
+
+.filtro-especie select:focus {
+    border-color: #ba68c8;
+    box-shadow: 0 0 10px rgba(186, 104, 200, 0.4);
+}
+
+/* 🚗 Filtros de Vehículos - Rojo */
+.filtro-vehiculo label {
+    color: #e57373;
+}
+
+.filtro-vehiculo select {
+    border-color: #ef5350;
+}
+
+.filtro-vehiculo select:focus {
+    border-color: #e57373;
+    box-shadow: 0 0 10px rgba(229, 115, 115, 0.4);
+}
+
+/* Botón limpiar filtros */
+.btn-limpiar-filtros {
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(145deg, #3a3a3a, #2d2d2d);
+    color: var(--color-primary);
+    border: 2px solid #4a4a4a;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+.btn-limpiar-filtros:hover {
+    background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 15px rgba(255, 232, 31, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-limpiar-filtros:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filtros-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filtro-grupo {
+        min-width: 100%;
+    }
+    
+    .btn-limpiar-filtros {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* =============================================================================
    ⏳ LOADING SCREEN - Pantalla de carga inicial
    ============================================================================= */
 .loading-screen {
