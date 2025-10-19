@@ -443,11 +443,18 @@ async function obtenerPeliculas() {
         const res = await fetch(`${BASE_URL}/films`);
         const data = await res.json();
 
-        peliculas = data.result.map((f) => ({
-            ...f,
+        peliculas = data.result.map(f => ({
+            uid: f.uid,
+            title: f.properties.title,
+            episode_id: f.properties.episode_id,
+            director: f.properties.director,
+            producer: f.properties.producer,
+            release_date: f.properties.release_date,
+            opening_crawl: f.properties.opening_crawl,
             image: `img/films/${normalizarNombreArchivo(f.properties.title)}.webp`
         }));
 
+        console.log(`🎬 Películas cargadas: ${peliculas.length}`);
         return peliculas;
     } catch (error) {
         console.error('❌ Error al obtener películas:', error);
@@ -562,24 +569,47 @@ async function obtenerDetalleNave(id) {
 }
 
 // =======================
-// 🎬 Obtener detalle de PELÍCULA
+// 🎬 Obtener detalle de PELÍCULA con caché localStorage
 // =======================
 async function obtenerDetallePelicula(id) {
+    const cacheKey = `pelicula_${id}`;
+    const cache = localStorage.getItem(cacheKey);
+
+    // Si ya está guardada en cache, la usamos directamente
+    if (cache) {
+        console.log(`🎥 Película ${id} cargada desde caché`);
+        return JSON.parse(cache);
+    }
+
     try {
         const res = await fetch(`${BASE_URL}/films/${id}`);
         const data = await res.json();
         const pelicula = data.result.properties;
 
-        pelicula.uid = id;
-        pelicula.title = pelicula.title || 'Desconocida';
-        pelicula.image = `img/films/${normalizarNombreArchivo(pelicula.title)}.webp`;
+        const peliculaObj = {
+            uid: id,
+            title: pelicula.title || 'Desconocida',
+            episode_id: pelicula.episode_id,
+            director: pelicula.director,
+            producer: pelicula.producer,
+            release_date: pelicula.release_date,
+            opening_crawl: pelicula.opening_crawl,
+            image: `img/films/${normalizarNombreArchivo(pelicula.title)}.webp`,
+            imageGitHub: null, // podrías poner URL alternativa si la tuvieras
+            imageFallback: 'img/fallback.webp'
+        };
 
-        return pelicula;
+        // Guardar en cache local
+        localStorage.setItem(cacheKey, JSON.stringify(peliculaObj));
+        console.log(`✅ Película ${pelicula.title} guardada en caché`);
+
+        return peliculaObj;
     } catch (error) {
         console.error(`❌ Error al obtener detalle de la película ${id}:`, error);
         return null;
     }
 }
+
 
 // =======================
 // 👽 Obtener detalle de ESPECIE
