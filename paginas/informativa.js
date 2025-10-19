@@ -1,4 +1,3 @@
-// Página informativa sobre Star Wars y la app
 function Informativa() {
     const root = document.getElementById("root");
     root.innerHTML = "";
@@ -29,7 +28,7 @@ function Informativa() {
             <h2>📱 Sobre esta App</h2>
             <p>
                 Esta enciclopedia digital te permite explorar todos los elementos canónicos del universo Star Wars, 
-                usando datos oficiales de <strong>SWAPI (The Star Wars API)</strong>.
+                usando datos oficiales de <strong>SWAPI (The Star Wars API)</strong> y recursos multimedia adicionales.
             </p>
             
             <div class="caracteristicas">
@@ -102,12 +101,35 @@ function Informativa() {
         <section class="info-seccion">
             <h2>📊 Fuente de datos</h2>
             <p>
-                Todos los datos provienen de <strong>SWAPI.tech</strong>, una API REST gratuita y 
-                programáticamente accesible con información canónica del universo Star Wars.
+                Los datos textuales provienen de <strong>SWAPI.tech</strong> (<code>https://www.swapi.tech/api/</code>), 
+                una API REST gratuita y programáticamente accesible con información canónica del universo Star Wars.
             </p>
             <p class="info-api">
                 🔗 API Base: <code>https://www.swapi.tech/api/</code><br>
                 📚 Documentación: <a href="https://www.swapi.tech/documentation" target="_blank">swapi.tech/documentation</a>
+            </p>
+
+            <h3 style="margin-top:1rem;">🖼️ Imágenes y multimedia</h3>
+            <p>
+                Las imágenes se obtienen desde un repositorio público en <strong>GitHub</strong> que contiene recursos adicionales (sprites y retratos). 
+                Ten en cuenta que el repositorio puede incluir archivos corruptos o referencias rotas; la app intenta:
+            </p>
+            <ul>
+                <li>1) Obtener la imagen desde el dataset de terceros (Akabab) si está disponible.</li>
+                <li>2) Usar la versión alojada en el repositorio de GitHub.</li>
+                <li>3) Buscar una copia local en <code>img/</code> dentro del proyecto.</li>
+                <li>4) Mostrar un <em>fallback</em> genérico (<code>img/fallback.webp</code>) si ninguna ruta válida está disponible.</li>
+            </ul>
+            <p class="nota-aviso">
+                ⚠️ Por eso verás algunos avatares que no cargan correctamente en ciertas máquinas o navegadores — algunas imágenes en el repo están corruptas o las rutas locales difieren en mayúsculas/extensiones. Si detectas errores 404 o imágenes dañadas, revisa primero la carpeta <code>img/</code> y luego el repositorio en GitHub.
+            </p>
+        </section>
+
+        <section class="info-seccion">
+            <h2>🔧 Nota técnica rápida</h2>
+            <p>
+                Recomendaciones para desarrolladores: la app hace comprobación con <code>Image()</code> para validar URLs (más robusto frente a CORS que HEAD). 
+                Mantén las rutas locales y nombres de archivos normalizados (sin mayúsculas ni caracteres especiales) para evitar 404 en servidores sensibles a mayúsculas.
             </p>
         </section>
         
@@ -120,9 +142,11 @@ function Informativa() {
         
         <div class="info-footer">
             <p>Desarrollado con ❤️ para los fans de Star Wars</p>
-            <p class="version">v1.0.0 - 2025</p>
+            <p class="version">v1.0.1 - 2025</p>
         </div>
     `;
     
     root.appendChild(contenedor);
 }
+
+
