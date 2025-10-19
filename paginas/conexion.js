@@ -51,24 +51,63 @@ function normalizarNombreArchivo(nombre) {
         .replace(/[^a-z0-9_-]/g, '');
 }
 
+// ✅ Verifica si una imagen existe (usa GET si el HEAD falla)
+async function verificarImagen(url) {
+    try {
+        // Primero intentamos con HEAD
+        let respuesta = await fetch(url, { method: "HEAD" });
+
+        // Si falla (algunos entornos bloquean HEAD), probamos con GET
+        if (!respuesta.ok) {
+            respuesta = await fetch(url);
+        }
+
+        // Devuelve true si la respuesta fue válida
+        return respuesta.ok;
+    } catch (error) {
+        console.warn(`⚠️ No se pudo verificar la imagen: ${url}`, error);
+        return false;
+    }
+}
+
 // =======================
 // 🖼️ Obtener imagen CON CACHÉ localStorage
 // =======================
 async function obtenerImagen(nombre, categoria = "personajes") {
-    const key = `img_${categoria}_${nombre}`;
-    const cache = localStorage.getItem(key);
-    if (cache) return cache;
-    
     const nombreNormalizado = normalizarNombreArchivo(nombre);
     const fallback = "img/fallback.webp";
-    
+
+    // Buscar en el dataset de Akabab
     const personajeAkabab = imagenesStarWars.find(
         img => img.name.toLowerCase() === nombre.toLowerCase()
     );
-    
-    const url = personajeAkabab?.image || `img/${categoria}/${nombreNormalizado}.webp`;
-    localStorage.setItem(key, url);
-    return url;
+
+    // 1️⃣ Intentar con la URL de Akabab si existe
+    if (personajeAkabab && personajeAkabab.image) {
+        const url = personajeAkabab.image;
+
+        const cargaValida = await verificarImagen(url);
+
+        if (cargaValida) {
+            return url;
+        }
+    }
+
+    // 2️⃣ Intentar versión local
+    const rutaLocal = `img/${categoria}/${nombreNormalizado}.webp`;
+    const existeLocal = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = rutaLocal;
+    });
+
+    if (existeLocal) {
+        return rutaLocal;
+    }
+
+    // 3️⃣ Si todo falla → fallback genérico
+    return fallback;
 }
 
 // =======================
