@@ -1,5 +1,5 @@
 // =============================================================================
-// 🎮 MINIJUEGO - Adivina el personaje de Star Wars (con carga perezosa)
+// 🎮 MINIJUEGO - Adivina el personaje de Star Wars (RESPONSIVE)
 // =============================================================================
 
 let juegoActivo = {
@@ -12,13 +12,11 @@ let juegoActivo = {
 
 // 🎲 Iniciar nuevo juego
 async function iniciarNuevoJuego() {
-    // ⚡ CARGA PEREZOSA: Cargar detalles de personajes si no están cargados
     if (!personajesDetallesCargados) {
         console.log("⏳ Cargando personajes completos para el juego...");
         await cargarDetallesPersonajes();
     }
 
-    // Seleccionar personaje aleatorio que tenga todas las propiedades
     const personajesValidos = personajes.filter(p => 
         p.gender && p.height && p.eye_color && p.hair_color && p.mass && p.image
     );
@@ -45,19 +43,16 @@ async function Minijuego() {
     const root = document.getElementById("root");
     root.innerHTML = "";
 
-    // ⚡ CARGA PEREZOSA: Si no hay personajes cargados con detalles, cargarlos
     if (!personajesDetallesCargados || personajes.length === 0 || !personajes[0].image) {
         root.innerHTML = "<div class='loading'>⏳ Cargando personajes para el juego...</div>";
         await cargarDetallesPersonajes();
         
-        // Verificar que se hayan cargado correctamente
         if (!personajes || personajes.length === 0) {
             root.innerHTML = "<p style='color: red; text-align: center; padding: 2rem;'>Error al cargar los personajes. Por favor, recarga la página.</p>";
             return;
         }
     }
 
-    // Si es la primera vez o no hay personaje secreto, iniciar juego
     if (!juegoActivo.personajeSecreto) {
         await iniciarNuevoJuego();
         return;
@@ -70,7 +65,7 @@ async function Minijuego() {
     const header = document.createElement("div");
     header.className = "minijuego-header";
     header.innerHTML = `
-        <h1>🎮 Adivina el Personaje de Star Wars</h1>
+        <h1>🎮 Adivina el Personaje</h1>
         <p class="instrucciones">🟢 = Correcto | 🔴 = Incorrecto | Tienes ${juegoActivo.maxIntentos} intentos</p>
         <div class="intentos-contador">
             <span class="intentos-label">Intentos:</span>
@@ -89,7 +84,7 @@ async function Minijuego() {
                     type="text" 
                     id="buscador-personaje" 
                     class="buscador-game" 
-                    placeholder="Escribe el nombre del personaje..."
+                    placeholder="🔍 Escribe el nombre del personaje..."
                     autocomplete="off"
                 >
                 <div id="sugerencias" class="sugerencias-list"></div>
@@ -251,12 +246,12 @@ function seleccionarPersonaje(uid) {
     Minijuego();
 }
 
-// 📊 Generar tabla de intentos
+// 📊 Generar tabla de intentos (RESPONSIVE CON DATA-LABELS)
 function generarTablaIntentos() {
     if (juegoActivo.intentos.length === 0) {
         return `
             <div class="sin-intentos">
-                <p>Escribe el nombre de un personaje para comenzar</p>
+                <p>🎯 Escribe el nombre de un personaje para comenzar</p>
             </div>
         `;
     }
@@ -289,21 +284,21 @@ function generarTablaIntentos() {
                     <img src="${intento.image}" onerror="this.src='img/fallback.webp'">
                     <span>${intento.name}</span>
                 </div>
-                <div class="celda ${generoMatch ? 'correcto' : 'incorrecto'}">
+                <div class="celda ${generoMatch ? 'correcto' : 'incorrecto'}" data-label="Género">
                     ${intento.gender || 'N/A'}
                 </div>
-                <div class="celda ${alturaMatch ? 'correcto' : 'incorrecto'}">
+                <div class="celda ${alturaMatch ? 'correcto' : 'incorrecto'}" data-label="Altura">
                     ${intento.height || 'N/A'} cm
                     ${!alturaMatch ? getFlechaAltura(intento.height, secreto.height) : ''}
                 </div>
-                <div class="celda ${pesoMatch ? 'correcto' : 'incorrecto'}">
+                <div class="celda ${pesoMatch ? 'correcto' : 'incorrecto'}" data-label="Peso">
                     ${intento.mass || 'N/A'} kg
                     ${!pesoMatch ? getFlechaPeso(intento.mass, secreto.mass) : ''}
                 </div>
-                <div class="celda ${ojosMatch ? 'correcto' : 'incorrecto'}">
+                <div class="celda ${ojosMatch ? 'correcto' : 'incorrecto'}" data-label="Ojos">
                     ${intento.eye_color || 'N/A'}
                 </div>
-                <div class="celda ${peloMatch ? 'correcto' : 'incorrecto'}">
+                <div class="celda ${peloMatch ? 'correcto' : 'incorrecto'}" data-label="Pelo">
                     ${intento.hair_color || 'N/A'}
                 </div>
             </div>
