@@ -52,7 +52,7 @@ async function Naves() {
     filtrosContainer.className = "filtros-container";
     filtrosContainer.innerHTML = `
         <div class="filtro-grupo filtro-nave">
-            <label>🛸 Clase:</label>
+            <label>Clase:</label>
             <select id="filtro-clase-nave">
                 <option value="">Todas</option>
                 <option value="starfighter">Caza estelar</option>
@@ -64,7 +64,7 @@ async function Naves() {
         </div>
         
         <div class="filtro-grupo filtro-nave">
-            <label>⚡ Hiperpropulsor:</label>
+            <label>Hiperpropulsor:</label>
             <select id="filtro-hiperpropulsor">
                 <option value="">Todos</option>
                 <option value="rapido">Rápido (≤1.0)</option>
@@ -74,7 +74,7 @@ async function Naves() {
         </div>
         
         <div class="filtro-grupo filtro-nave">
-            <label>👥 Tripulación:</label>
+            <label>Tripulación:</label>
             <select id="filtro-tripulacion-nave">
                 <option value="">Todas</option>
                 <option value="1">1 persona</option>
@@ -84,7 +84,7 @@ async function Naves() {
             </select>
         </div>
         
-        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosNaves()">🔄 Limpiar filtros</button>
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosNaves()">Limpiar filtros</button>
     `;
 
     const contenedorLista = document.createElement("div");

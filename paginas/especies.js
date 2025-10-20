@@ -52,7 +52,7 @@ async function Especies() {
     filtrosContainer.className = "filtros-container";
     filtrosContainer.innerHTML = `
         <div class="filtro-grupo filtro-especie">
-            <label>🧬 Clasificación:</label>
+            <label>Clasificación:</label>
             <select id="filtro-clasificacion">
                 <option value="">Todas</option>
                 <option value="mammal">Mamífero</option>
@@ -63,7 +63,7 @@ async function Especies() {
         </div>
         
         <div class="filtro-grupo filtro-especie">
-            <label>🧠 Designación:</label>
+            <label>Designación:</label>
             <select id="filtro-designacion">
                 <option value="">Todas</option>
                 <option value="sentient">Sensible</option>
@@ -71,7 +71,7 @@ async function Especies() {
             </select>
         </div>
         
-        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosEspecies()">🔄 Limpiar filtros</button>
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosEspecies()">Limpiar filtros</button>
     `;
 
     const contenedorLista = document.createElement("div");

@@ -1,6 +1,8 @@
 // =============================================================================
 // 🧍‍♂️ PERSONAJES - Con carga perezosa
 // =============================================================================
+// Declaramos el audio fuera de la función, para poder pausarlo luego
+let vaderAudio = new Audio("audios/Voicy_I'm Your Father.mp3");
 
 // 🧱 Generar HTML de lista de personajes
 function generarListaPersonajes(arrayPersonajes) {
@@ -52,7 +54,7 @@ async function Personajes() {
     filtrosContainer.className = "filtros-container";
     filtrosContainer.innerHTML = `
         <div class="filtro-grupo filtro-personaje">
-            <label>⚧️ Género:</label>
+            <label>Género:</label>
             <select id="filtro-genero">
                 <option value="">Todos</option>
                 <option value="male">Masculino</option>
@@ -63,7 +65,7 @@ async function Personajes() {
         </div>
         
         <div class="filtro-grupo filtro-personaje">
-            <label>👁️ Color de ojos:</label>
+            <label>Color de ojos:</label>
             <select id="filtro-ojos">
                 <option value="">Todos</option>
                 <option value="blue">Azul</option>
@@ -76,7 +78,7 @@ async function Personajes() {
         </div>
         
         <div class="filtro-grupo filtro-personaje">
-            <label>📏 Altura:</label>
+            <label>Altura:</label>
             <select id="filtro-altura">
                 <option value="">Todas</option>
                 <option value="bajo">Bajo (&lt;150cm)</option>
@@ -85,7 +87,7 @@ async function Personajes() {
             </select>
         </div>
         
-        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosPersonajes()">🔄 Limpiar filtros</button>
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosPersonajes()">Limpiar filtros</button>
     `;
 
     const contenedorLista = document.createElement("div");
@@ -140,16 +142,31 @@ function aplicarFiltrosPersonajes() {
     }
 // 🌟 Easter Egg #2: "I am your father"
 if (textoBusqueda.includes("father") || textoBusqueda.includes("padre")) {
+    // Mostramos el Easter Egg
     root.innerHTML = `
         <div class="easter-egg">
+            <h2>🌌 Darth Vader 🌌</h2>
             <p>“No... I am your father.”</p>
             <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnpxazZwb2wzeWwwOWV4a3RzN3AzYWpwNW94YnM0bGg1NnRpemxqdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPpf0zTqRASyzTi/giphy.gif" 
                  alt="Darth Vader" class="easter-img">
-            <button onclick="Personajes()">Volver a la galaxia</button>
+            <button id="volverBtn">Volver a la galaxia</button>
         </div>
     `;
+
+    // Reproducimos el audio automáticamente
+    vaderAudio.currentTime = 0; // volvemos al inicio
+    vaderAudio.play();
+
+    // Detenemos el audio al volver
+    document.getElementById("volverBtn").addEventListener("click", () => {
+        vaderAudio.pause();
+        vaderAudio.currentTime = 0; // opcional: reiniciarlo
+        Personajes(); // llamamos a tu función para volver
+    });
+
     return; // detenemos el resto del filtrado
 }
+
 
 
     // --- Filtros normales (como ya tenías)

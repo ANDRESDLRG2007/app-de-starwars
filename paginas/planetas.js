@@ -52,7 +52,7 @@ async function Planetas() {
     filtrosContainer.className = "filtros-container";
     filtrosContainer.innerHTML = `
         <div class="filtro-grupo filtro-planeta">
-            <label>🌡️ Clima:</label>
+            <label>Clima:</label>
             <select id="filtro-clima">
                 <option value="">Todos</option>
                 <option value="arid">Árido</option>
@@ -64,7 +64,7 @@ async function Planetas() {
         </div>
         
         <div class="filtro-grupo filtro-planeta">
-            <label>🏔️ Terreno:</label>
+            <label>Terreno:</label>
             <select id="filtro-terreno">
                 <option value="">Todos</option>
                 <option value="desert">Desierto</option>
@@ -77,7 +77,7 @@ async function Planetas() {
         </div>
         
         <div class="filtro-grupo filtro-planeta">
-            <label>👥 Población:</label>
+            <label>Población:</label>
             <select id="filtro-poblacion">
                 <option value="">Todas</option>
                 <option value="deshabitado">Deshabitado</option>
@@ -87,7 +87,7 @@ async function Planetas() {
             </select>
         </div>
         
-        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosPlanetas()">🔄 Limpiar filtros</button>
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosPlanetas()">Limpiar filtros</button>
     `;
 
     const contenedorLista = document.createElement("div");

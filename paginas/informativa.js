@@ -1,15 +1,21 @@
+// Declaración global del audio
+let starWarsAudio = new Audio("audios/B S O STAR WARS - bsocine.mp3");
+starWarsAudio.loop = true; // para que se repita mientras estés en la página
+
 function Informativa() {
     const root = document.getElementById("root");
     root.innerHTML = "";
-    
+
     const contenedor = document.createElement("div");
     contenedor.className = "pagina-informativa";
-    
+
     contenedor.innerHTML = `
-        <div class="info-header">
-            <h1>🌟 Sobre Star Wars Encyclopedia</h1>
-            <p class="subtitulo">Tu guía completa del universo Star Wars</p>
-        </div>
+<div class="info-header">
+    <h1>🌟 Sobre Star Wars Encyclopedia</h1>
+    <p class="subtitulo">Tu guía completa del universo Star Wars</p>
+    <button id="mute-btn" style="font-size:1.5rem; background:none; border:none; cursor:pointer;">🔇</button>
+</div>
+
         
         <section class="info-seccion">
             <h2>🎬 ¿Qué es Star Wars?</h2>
@@ -145,8 +151,35 @@ function Informativa() {
             <p class="version">v1.0.1 - 2025</p>
         </div>
     `;
-    
+
     root.appendChild(contenedor);
+
+    // Reproducir la música al entrar
+    starWarsAudio.currentTime = 0;
+    starWarsAudio.play().catch(e => {
+        console.log("Autoplay bloqueado:", e);
+    });
+
+    // Estado de mute
+    let isMuted = false;
+
+
+const muteBtn = document.getElementById("mute-btn"); // Ahora sí debería existir
+muteBtn.addEventListener("click", () => {
+    starWarsAudio.muted = !starWarsAudio.muted;
+    muteBtn.textContent = starWarsAudio.muted ? "🔇" : "🔈";
+});
 }
 
+// Ejemplo: detener la música al ir a otra página
+function Personajes() {
+    if (starWarsAudio) {
+        starWarsAudio.pause();
+        starWarsAudio.currentTime = 0;
+        starWarsAudio.muted = false; // Resetear mute para la próxima vez
+    }
 
+    const root = document.getElementById("root");
+    root.innerHTML = "";
+    // aquí iría tu render de Personajes
+}

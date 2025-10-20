@@ -653,17 +653,46 @@ async function obtenerDetallePelicula(id) {
 // =======================
 // 👽 Obtener detalle de ESPECIE
 // =======================
+// =======================
+// 🧬 Obtener detalle de ESPECIE con caché localStorage
+// =======================
 async function obtenerDetalleEspecie(id) {
+    const cacheKey = `especie_${id}`;
+    const cache = localStorage.getItem(cacheKey);
+
+    // Si ya está guardada en caché, la usamos directamente
+    if (cache) {
+        console.log(`🧬 Especie ${id} cargada desde caché`);
+        return JSON.parse(cache);
+    }
+
     try {
         const res = await fetch(`${BASE_URL}/species/${id}`);
         const data = await res.json();
         const especie = data.result.properties;
 
-        especie.uid = id;
-        especie.name = especie.name || 'Desconocido';
-        especie.image = `img/especies/${normalizarNombreArchivo(especie.name)}.webp`;
+        const especieObj = {
+            uid: id,
+            name: especie.name || 'Desconocido',
+            classification: especie.classification || 'N/A',
+            designation: especie.designation || 'N/A',
+            average_height: especie.average_height || 'N/A',
+            average_lifespan: especie.average_lifespan || 'N/A',
+            language: especie.language || 'N/A',
+            skin_colors: especie.skin_colors || 'N/A',
+            hair_colors: especie.hair_colors || 'N/A',
+            eye_colors: especie.eye_colors || 'N/A',
+            homeworld: especie.homeworld || 'Desconocido',
+            image: `img/especies/${normalizarNombreArchivo(especie.name)}.webp`,
+            imageGitHub: null,
+            imageFallback: 'img/fallback.webp'
+        };
 
-        return especie;
+        // Guardar en caché local
+        localStorage.setItem(cacheKey, JSON.stringify(especieObj));
+        console.log(`✅ Especie ${especie.name} guardada en caché`);
+
+        return especieObj;
     } catch (error) {
         console.error(`❌ Error al obtener detalle de la especie ${id}:`, error);
         return null;
@@ -671,24 +700,51 @@ async function obtenerDetalleEspecie(id) {
 }
 
 // =======================
-// 🚗 Obtener detalle de VEHÍCULO
+// 🚗 Obtener detalle de VEHÍCULO con caché localStorage
 // =======================
 async function obtenerDetalleVehiculo(id) {
+    const cacheKey = `vehiculo_${id}`;
+    const cache = localStorage.getItem(cacheKey);
+
+    // Si ya está guardado en caché, usarlo directamente
+    if (cache) {
+        console.log(`🚙 Vehículo ${id} cargado desde caché`);
+        return JSON.parse(cache);
+    }
+
     try {
         const res = await fetch(`${BASE_URL}/vehicles/${id}`);
         const data = await res.json();
         const vehiculo = data.result.properties;
 
-        vehiculo.uid = id;
-        vehiculo.name = vehiculo.name || 'Desconocido';
-        vehiculo.image = `img/vehiculos/${normalizarNombreArchivo(vehiculo.name)}.webp`;
+        const vehiculoObj = {
+            uid: id,
+            name: vehiculo.name || 'Desconocido',
+            model: vehiculo.model || 'N/A',
+            manufacturer: vehiculo.manufacturer || 'N/A',
+            cost_in_credits: vehiculo.cost_in_credits || 'N/A',
+            length: vehiculo.length || 'N/A',
+            max_atmosphering_speed: vehiculo.max_atmosphering_speed || 'N/A',
+            crew: vehiculo.crew || 'N/A',
+            passengers: vehiculo.passengers || 'N/A',
+            cargo_capacity: vehiculo.cargo_capacity || 'N/A',
+            vehicle_class: vehiculo.vehicle_class || 'N/A',
+            image: `img/vehiculos/${normalizarNombreArchivo(vehiculo.name)}.webp`,
+            imageGitHub: null,
+            imageFallback: 'img/fallback.webp'
+        };
 
-        return vehiculo;
+        // Guardar en caché local
+        localStorage.setItem(cacheKey, JSON.stringify(vehiculoObj));
+        console.log(`✅ Vehículo ${vehiculo.name} guardado en caché`);
+
+        return vehiculoObj;
     } catch (error) {
         console.error(`❌ Error al obtener detalle del vehículo ${id}:`, error);
         return null;
     }
 }
+
 
 // =============================================================================
 // ⭐ FAVORITOS

@@ -52,7 +52,7 @@ async function Vehiculos() {
     filtrosContainer.className = "filtros-container";
     filtrosContainer.innerHTML = `
         <div class="filtro-grupo filtro-vehiculo">
-            <label>🚙 Clase:</label>
+            <label>Clase:</label>
             <select id="filtro-clase-vehiculo">
                 <option value="">Todas</option>
                 <option value="wheeled">Con ruedas</option>
@@ -63,7 +63,7 @@ async function Vehiculos() {
         </div>
         
         <div class="filtro-grupo filtro-vehiculo">
-            <label>👥 Tripulación:</label>
+            <label>Tripulación:</label>
             <select id="filtro-tripulacion">
                 <option value="">Todas</option>
                 <option value="1">1 persona</option>
@@ -73,7 +73,7 @@ async function Vehiculos() {
             </select>
         </div>
         
-        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosVehiculos()">🔄 Limpiar filtros</button>
+        <button class="btn-limpiar-filtros" onclick="limpiarFiltrosVehiculos()">Limpiar filtros</button>
     `;
 
     const contenedorLista = document.createElement("div");
