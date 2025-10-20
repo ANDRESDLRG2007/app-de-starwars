@@ -29,6 +29,7 @@ function actualizarListaPersonajes(arrayPersonajes) {
     const contenedor = document.getElementById("lista-elementos");
     if (contenedor) {
         contenedor.innerHTML = generarListaPersonajes(arrayPersonajes);
+        
     }
 }
 
@@ -149,7 +150,7 @@ if (textoBusqueda.includes("father") || textoBusqueda.includes("padre")) {
             <p>“No... I am your father.”</p>
             <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnpxazZwb2wzeWwwOWV4a3RzN3AzYWpwNW94YnM0bGg1NnRpemxqdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPpf0zTqRASyzTi/giphy.gif" 
                  alt="Darth Vader" class="easter-img">
-            <button id="volverBtn">Volver a la galaxia</button>
+             <button onclick="Personajes()">Volver a la galaxia</button>
         </div>
     `;
 

@@ -1,6 +1,6 @@
 // Declaración global del audio
 let starWarsAudio = new Audio("audios/B S O STAR WARS - bsocine.mp3");
-starWarsAudio.loop = true; // para que se repita mientras estés en la página
+starWarsAudio.loop = true;
 
 function Informativa() {
     const root = document.getElementById("root");
@@ -160,26 +160,30 @@ function Informativa() {
         console.log("Autoplay bloqueado:", e);
     });
 
-    // Estado de mute
-    let isMuted = false;
-
-
-const muteBtn = document.getElementById("mute-btn"); // Ahora sí debería existir
-muteBtn.addEventListener("click", () => {
-    starWarsAudio.muted = !starWarsAudio.muted;
-    muteBtn.textContent = starWarsAudio.muted ? "🔇" : "🔈";
-});
+    // Botón de mute
+    const muteBtn = document.getElementById("mute-btn");
+    muteBtn.addEventListener("click", () => {
+        starWarsAudio.muted = !starWarsAudio.muted;
+        muteBtn.textContent = starWarsAudio.muted ? "🔇" : "🔈";
+    });
 }
 
-// Ejemplo: detener la música al ir a otra página
-function Personajes() {
-    if (starWarsAudio) {
+// ⚠️ IMPORTANTE: NO definir otras funciones de navegación aquí
+// Las funciones Home(), Personajes(), Planetas(), etc. están definidas en sus propios archivos
+
+// Función auxiliar para detener el audio cuando se sale de la página informativa
+function detenerAudioInformativa() {
+    if (starWarsAudio && !starWarsAudio.paused) {
         starWarsAudio.pause();
         starWarsAudio.currentTime = 0;
-        starWarsAudio.muted = false; // Resetear mute para la próxima vez
+        starWarsAudio.muted = false;
     }
+}
 
-    const root = document.getElementById("root");
-    root.innerHTML = "";
-    // aquí iría tu render de Personajes
+// También detenemos el audio de Vader si viene del Easter Egg
+function detenerAudioVader() {
+    if (typeof vaderAudio !== 'undefined' && vaderAudio && !vaderAudio.paused) {
+        vaderAudio.pause();
+        vaderAudio.currentTime = 0;
+    }
 }
