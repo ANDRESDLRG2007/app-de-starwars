@@ -88,7 +88,7 @@ body::after {
 nav {
     background: rgba(0, 0, 0, 0.95);
     padding: 1rem;
-    padding-top: 2rem; 
+    padding-top: 3rem; 
     display: flex;
     justify-content: center;
     gap: 0.8rem;
@@ -963,7 +963,7 @@ nav button:hover {
 /* ===== RESPONSIVE MINIJUEGO ===== */
 @media (max-width: 768px) {
     nav {
-        padding-top: 1.2rem;
+        padding-top: 2.5rem;
         gap: 0.4rem;
     }
     
@@ -1763,5 +1763,10 @@ nav button:hover {
     nav button {
         padding: 0.6rem 1rem;
         font-size: 0.85rem;
+    }
+
+    nav {
+        padding: 0.5rem;
+        padding-top: 3rem;
     }
 }
